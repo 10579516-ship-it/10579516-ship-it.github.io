@@ -1,0 +1,427 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Ghost Editor — Theme System
+   ------------------------------------------------------------
+   Each theme overrides CSS custom properties on a `data-theme`
+   attribute set on the preview root. The `.prose-ghost` block
+   below applies the variables to every markdown element.
+   ============================================================ */
+
+:root {
+  --gh-bg: #ffffff;
+  --gh-fg: #1f2328;
+  --gh-accent: #2563eb;
+  --gh-h1: #1f2328;
+  --gh-h2: #1f2328;
+  --gh-h3: #374151;
+  --gh-p: #1f2328;
+  --gh-quote-bg: #f6f8fa;
+  --gh-quote-border: #d0d7de;
+  --gh-quote-fg: #57606a;
+  --gh-code-bg: #f6f8fa;
+  --gh-code-fg: #1f2328;
+  --gh-code-border: #e1e4e8;
+  --gh-hr: #d0d7de;
+  --gh-table-border: #d0d7de;
+  --gh-table-stripe: #f6f8fa;
+  --gh-link: #2563eb;
+  --gh-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --gh-font-heading: 'Outfit', 'Inter', system-ui, sans-serif;
+  --gh-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* 1. Notion Classic */
+[data-theme="notion-classic"] {
+  --gh-bg: #ffffff;
+  --gh-fg: #37352f;
+  --gh-accent: #2383e2;
+  --gh-h1: #37352f; --gh-h2: #37352f; --gh-h3: #37352f; --gh-p: #37352f;
+  --gh-quote-bg: #f7f6f3; --gh-quote-border: #37352f; --gh-quote-fg: #37352f;
+  --gh-code-bg: #f7f6f3; --gh-code-fg: #eb5757; --gh-code-border: #e3e2df;
+  --gh-hr: #e3e2df; --gh-table-border: #e3e2df; --gh-table-stripe: #fbfaf9;
+  --gh-link: #2383e2;
+  --gh-font: 'Inter', system-ui, sans-serif;
+  --gh-font-heading: 'Outfit', 'Inter', system-ui, sans-serif;
+}
+
+/* 2. Manus Minimal */
+[data-theme="manus-minimal"] {
+  --gh-bg: #fafaf7;
+  --gh-fg: #1a1a1a;
+  --gh-accent: #d97706;
+  --gh-h1: #0a0a0a; --gh-h2: #1a1a1a; --gh-h3: #404040; --gh-p: #1a1a1a;
+  --gh-quote-bg: #f5f4ee; --gh-quote-border: #d97706; --gh-quote-fg: #525252;
+  --gh-code-bg: #f1efea; --gh-code-fg: #b45309; --gh-code-border: #e7e5e0;
+  --gh-hr: #e7e5e0; --gh-table-border: #e7e5e0; --gh-table-stripe: #f5f4ee;
+  --gh-link: #d97706;
+}
+
+/* 3. Google Material */
+[data-theme="google-material"] {
+  --gh-bg: #ffffff;
+  --gh-fg: #212121;
+  --gh-accent: #1a73e8;
+  --gh-h1: #202124; --gh-h2: #202124; --gh-h3: #3c4043; --gh-p: #212121;
+  --gh-quote-bg: #f8f9fa; --gh-quote-border: #1a73e8; --gh-quote-fg: #5f6368;
+  --gh-code-bg: #f8f9fa; --gh-code-fg: #c5221f; --gh-code-border: #dadce0;
+  --gh-hr: #dadce0; --gh-table-border: #dadce0; --gh-table-stripe: #f8f9fa;
+  --gh-link: #1a73e8;
+}
+
+/* 4. Red Note (Xiaohongshu) */
+[data-theme="red-note"] {
+  --gh-bg: #fff5f5;
+  --gh-fg: #2c2c2c;
+  --gh-accent: #ff2442;
+  --gh-h1: #ff2442; --gh-h2: #ff4d6a; --gh-h3: #ff7a8e; --gh-p: #2c2c2c;
+  --gh-quote-bg: #ffe3e3; --gh-quote-border: #ff2442; --gh-quote-fg: #6b6b6b;
+  --gh-code-bg: #ffe8e8; --gh-code-fg: #c81e3a; --gh-code-border: #ffc4c4;
+  --gh-hr: #ffc4c4; --gh-table-border: #ffc4c4; --gh-table-stripe: #fff0f0;
+  --gh-link: #ff2442;
+  --gh-font: 'Outfit', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --gh-font-heading: 'Outfit', 'PingFang SC', sans-serif;
+}
+
+/* 5. GitHub Light */
+[data-theme="github-light"] {
+  --gh-bg: #ffffff;
+  --gh-fg: #1f2328;
+  --gh-accent: #0969da;
+  --gh-h1: #1f2328; --gh-h2: #1f2328; --gh-h3: #1f2328; --gh-p: #1f2328;
+  --gh-quote-bg: #f6f8fa; --gh-quote-border: #d0d7de; --gh-quote-fg: #59636e;
+  --gh-code-bg: #afb8c133; --gh-code-fg: #1f2328; --gh-code-border: #d0d7de;
+  --gh-hr: #d0d7de; --gh-table-border: #d0d7de; --gh-table-stripe: #f6f8fa;
+  --gh-link: #0969da;
+}
+
+/* 6. Tokyo Night */
+[data-theme="tokyo-night"] {
+  --gh-bg: #1a1b26;
+  --gh-fg: #c0caf5;
+  --gh-accent: #7aa2f7;
+  --gh-h1: #7aa2f7; --gh-h2: #bb9af7; --gh-h3: #7dcfff; --gh-p: #c0caf5;
+  --gh-quote-bg: #16161e; --gh-quote-border: #3b4261; --gh-quote-fg: #9aa5ce;
+  --gh-code-bg: #16161e; --gh-code-fg: #9ece6a; --gh-code-border: #3b4261;
+  --gh-hr: #3b4261; --gh-table-border: #3b4261; --gh-table-stripe: #16161e;
+  --gh-link: #7aa2f7;
+  --gh-font: 'Inter', system-ui, sans-serif;
+  --gh-font-heading: 'Outfit', 'Inter', sans-serif;
+}
+
+/* 7. Everforest */
+[data-theme="everforest"] {
+  --gh-bg: #2d353b;
+  --gh-fg: #d3c6aa;
+  --gh-accent: #a7c080;
+  --gh-h1: #dbbc7f; --gh-h2: #a7c080; --gh-h3: #7fbbb3; --gh-p: #d3c6aa;
+  --gh-quote-bg: #232a2e; --gh-quote-border: #a7c080; --gh-quote-fg: #9da9a0;
+  --gh-code-bg: #232a2e; --gh-code-fg: #dbbc7f; --gh-code-border: #475258;
+  --gh-hr: #475258; --gh-table-border: #475258; --gh-table-stripe: #232a2e;
+  --gh-link: #a7c080;
+}
+
+/* 8. Nord Frost */
+[data-theme="nord-frost"] {
+  --gh-bg: #2e3440;
+  --gh-fg: #d8dee9;
+  --gh-accent: #88c0d0;
+  --gh-h1: #eceff4; --gh-h2: #8fbcbb; --gh-h3: #81a1c1; --gh-p: #d8dee9;
+  --gh-quote-bg: #3b4252; --gh-quote-border: #88c0d0; --gh-quote-fg: #e5e9f0;
+  --gh-code-bg: #3b4252; --gh-code-fg: #a3be8c; --gh-code-border: #434c5e;
+  --gh-hr: #434c5e; --gh-table-border: #434c5e; --gh-table-stripe: #3b4252;
+  --gh-link: #88c0d0;
+}
+
+/* 9. Dracula */
+[data-theme="dracula"] {
+  --gh-bg: #282a36;
+  --gh-fg: #f8f8f2;
+  --gh-accent: #bd93f9;
+  --gh-h1: #ff79c6; --gh-h2: #bd93f9; --gh-h3: #8be9fd; --gh-p: #f8f8f2;
+  --gh-quote-bg: #44475a; --gh-quote-border: #bd93f9; --gh-quote-fg: #6272a4;
+  --gh-code-bg: #44475a; --gh-code-fg: #50fa7b; --gh-code-border: #6272a4;
+  --gh-hr: #6272a4; --gh-table-border: #6272a4; --gh-table-stripe: #44475a;
+  --gh-link: #8be9fd;
+}
+
+/* 10. Minimal Gray */
+[data-theme="minimal-gray"] {
+  --gh-bg: #fafafa;
+  --gh-fg: #171717;
+  --gh-accent: #525252;
+  --gh-h1: #0a0a0a; --gh-h2: #171717; --gh-h3: #404040; --gh-p: #171717;
+  --gh-quote-bg: #f5f5f5; --gh-quote-border: #a3a3a3; --gh-quote-fg: #525252;
+  --gh-code-bg: #f5f5f5; --gh-code-fg: #171717; --gh-code-border: #e5e5e5;
+  --gh-hr: #e5e5e5; --gh-table-border: #e5e5e5; --gh-table-stripe: #f5f5f5;
+  --gh-link: #404040;
+}
+
+/* 11. Zhihu Blue */
+[data-theme="zhihu-blue"] {
+  --gh-bg: #ffffff;
+  --gh-fg: #1a1a1a;
+  --gh-accent: #0084ff;
+  --gh-h1: #1a1a1a; --gh-h2: #1a1a1a; --gh-h3: #444444; --gh-p: #1a1a1a;
+  --gh-quote-bg: #f6f6f6; --gh-quote-border: #0084ff; --gh-quote-fg: #646464;
+  --gh-code-bg: #f6f6f6; --gh-code-fg: #f56b6b; --gh-code-border: #ebebeb;
+  --gh-hr: #ebebeb; --gh-table-border: #ebebeb; --gh-table-stripe: #fafafa;
+  --gh-link: #0084ff;
+  --gh-font: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --gh-font-heading: 'Outfit', 'PingFang SC', sans-serif;
+}
+
+/* 12. Rose Pine */
+[data-theme="rose-pine"] {
+  --gh-bg: #191724;
+  --gh-fg: #e0def4;
+  --gh-accent: #c4a7e7;
+  --gh-h1: #ebbcba; --gh-h2: #c4a7e7; --gh-h3: #9ccfd8; --gh-p: #e0def4;
+  --gh-quote-bg: #1f1d2e; --gh-quote-border: #c4a7e7; --gh-quote-fg: #908caa;
+  --gh-code-bg: #1f1d2e; --gh-code-fg: #f6c177; --gh-code-border: #26233a;
+  --gh-hr: #26233a; --gh-table-border: #26233a; --gh-table-stripe: #1f1d2e;
+  --gh-link: #c4a7e7;
+}
+
+/* 13. Mint Fresh */
+[data-theme="mint-fresh"] {
+  --gh-bg: #f0fdf4;
+  --gh-fg: #14532d;
+  --gh-accent: #16a34a;
+  --gh-h1: #14532d; --gh-h2: #166534; --gh-h3: #15803d; --gh-p: #14532d;
+  --gh-quote-bg: #dcfce7; --gh-quote-border: #16a34a; --gh-quote-fg: #4d7c0f;
+  --gh-code-bg: #dcfce7; --gh-code-fg: #15803d; --gh-code-border: #bbf7d0;
+  --gh-hr: #bbf7d0; --gh-table-border: #bbf7d0; --gh-table-stripe: #f0fdf4;
+  --gh-link: #16a34a;
+}
+
+/* 14. Midnight Blue */
+[data-theme="midnight-blue"] {
+  --gh-bg: #0f172a;
+  --gh-fg: #e2e8f0;
+  --gh-accent: #60a5fa;
+  --gh-h1: #93c5fd; --gh-h2: #60a5fa; --gh-h3: #38bdf8; --gh-p: #e2e8f0;
+  --gh-quote-bg: #1e293b; --gh-quote-border: #60a5fa; --gh-quote-fg: #94a3b8;
+  --gh-code-bg: #1e293b; --gh-code-fg: #a5f3fc; --gh-code-border: #334155;
+  --gh-hr: #334155; --gh-table-border: #334155; --gh-table-stripe: #1e293b;
+  --gh-link: #60a5fa;
+}
+
+/* 15. Monochrome */
+[data-theme="monochrome"] {
+  --gh-bg: #ffffff;
+  --gh-fg: #000000;
+  --gh-accent: #000000;
+  --gh-h1: #000000; --gh-h2: #000000; --gh-h3: #000000; --gh-p: #000000;
+  --gh-quote-bg: #f5f5f5; --gh-quote-border: #000000; --gh-quote-fg: #404040;
+  --gh-code-bg: #f5f5f5; --gh-code-fg: #000000; --gh-code-border: #000000;
+  --gh-hr: #000000; --gh-table-border: #000000; --gh-table-stripe: #fafafa;
+  --gh-link: #000000;
+}
+
+/* ============================================================
+   Base + Prose Styles
+   ============================================================ */
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #f4f4f5;
+  color: #18181b;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Scrollbar — minimal */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.24); }
+
+/* ============================================================
+   .prose-ghost — the styled Markdown article
+   ============================================================ */
+
+.prose-ghost {
+  background: var(--gh-bg);
+  color: var(--gh-fg);
+  font-family: var(--gh-font);
+  font-size: 15px;
+  line-height: 1.75;
+  padding: 2.5rem 3rem;
+  border-radius: 12px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .prose-ghost { padding: 1.5rem 1.25rem; border-radius: 0; font-size: 15px; }
+}
+
+.prose-ghost > *:first-child { margin-top: 0; }
+.prose-ghost > *:last-child  { margin-bottom: 0; }
+
+.prose-ghost h1,
+.prose-ghost h2,
+.prose-ghost h3,
+.prose-ghost h4,
+.prose-ghost h5,
+.prose-ghost h6 {
+  font-family: var(--gh-font-heading);
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.6em 0 0.6em;
+}
+
+.prose-ghost h1 { font-size: 2em;    color: var(--gh-h1); }
+.prose-ghost h2 { font-size: 1.5em;  color: var(--gh-h2); }
+.prose-ghost h3 { font-size: 1.2em;  color: var(--gh-h3); }
+.prose-ghost h4 { font-size: 1.05em; color: var(--gh-h3); }
+.prose-ghost h5 { font-size: 0.95em; color: var(--gh-h3); }
+.prose-ghost h6 { font-size: 0.85em; color: var(--gh-h3); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.prose-ghost h2 {
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--gh-hr);
+}
+
+.prose-ghost p {
+  margin: 0.8em 0;
+  color: var(--gh-p);
+}
+
+.prose-ghost a {
+  color: var(--gh-link);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--gh-link) 30%, transparent);
+  transition: border-color 0.15s ease;
+}
+.prose-ghost a:hover {
+  border-bottom-color: var(--gh-link);
+}
+
+.prose-ghost strong { color: var(--gh-fg); font-weight: 700; }
+.prose-ghost em { font-style: italic; }
+
+.prose-ghost blockquote {
+  margin: 1em 0;
+  padding: 0.6em 1em;
+  background: var(--gh-quote-bg);
+  border-left: 3px solid var(--gh-quote-border);
+  color: var(--gh-quote-fg);
+  border-radius: 0 6px 6px 0;
+}
+.prose-ghost blockquote p { margin: 0.3em 0; }
+
+.prose-ghost code {
+  font-family: var(--gh-font-mono);
+  font-size: 0.88em;
+  background: var(--gh-code-bg);
+  color: var(--gh-code-fg);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  border: 1px solid var(--gh-code-border);
+}
+
+.prose-ghost pre {
+  margin: 1em 0;
+  padding: 1em 1.2em;
+  background: var(--gh-code-bg);
+  color: var(--gh-code-fg);
+  border: 1px solid var(--gh-code-border);
+  border-radius: 8px;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+.prose-ghost pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.85em;
+  color: inherit;
+}
+
+.prose-ghost hr {
+  height: 1px;
+  background: var(--gh-hr);
+  border: none;
+  margin: 2em 0;
+}
+
+.prose-ghost ul, .prose-ghost ol {
+  margin: 0.8em 0;
+  padding-left: 1.8em;
+}
+.prose-ghost li {
+  margin: 0.3em 0;
+}
+.prose-ghost li > p { margin: 0.3em 0; }
+
+.prose-ghost table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+  font-size: 0.92em;
+  border: 1px solid var(--gh-table-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.prose-ghost thead {
+  background: var(--gh-table-stripe);
+}
+.prose-ghost th, .prose-ghost td {
+  padding: 0.55em 0.9em;
+  border: 1px solid var(--gh-table-border);
+  text-align: left;
+}
+.prose-ghost th { font-weight: 600; }
+.prose-ghost tbody tr:nth-child(even) {
+  background: var(--gh-table-stripe);
+}
+
+.prose-ghost img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 1em 0;
+}
+
+.prose-ghost kbd {
+  font-family: var(--gh-font-mono);
+  font-size: 0.85em;
+  background: var(--gh-code-bg);
+  border: 1px solid var(--gh-code-border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+}
+
+.prose-ghost input[type="checkbox"] {
+  margin-right: 0.4em;
+}
+
+.prose-ghost del {
+  color: color-mix(in srgb, var(--gh-fg) 60%, transparent);
+}
+
+.prose-ghost details {
+  margin: 0.8em 0;
+  padding: 0.5em 0.8em;
+  background: var(--gh-quote-bg);
+  border: 1px solid var(--gh-code-border);
+  border-radius: 6px;
+}
+.prose-ghost summary {
+  cursor: pointer;
+  font-weight: 600;
+}

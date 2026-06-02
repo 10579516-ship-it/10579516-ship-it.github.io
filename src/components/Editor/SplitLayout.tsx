@@ -1,0 +1,70 @@
+import { useState, type ReactNode } from 'react';
+import { Edit3, Eye } from 'lucide-react';
+import { cn } from '@/utils/cn';
+
+interface SplitLayoutProps {
+  left: ReactNode;
+  right: ReactNode;
+}
+
+/**
+ * Responsive split-pane:
+ *   - md+ (≥768px): two columns side by side with a vertical divider.
+ *   - below md: a tab toggle ("Edit" | "Preview") switches the pane.
+ *
+ * Internal state — the active tab only matters on mobile.
+ */
+export function SplitLayout({ left, right }: SplitLayoutProps) {
+  const [tab, setTab] = useState<'edit' | 'preview'>('edit');
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Mobile tab bar — hidden on md+ */}
+      <div className="flex shrink-0 items-center gap-1 border-b border-zinc-200 bg-white px-3 py-1.5 md:hidden">
+        <button
+          type="button"
+          onClick={() => setTab('edit')}
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            tab === 'edit' ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-100',
+          )}
+        >
+          <Edit3 className="h-3.5 w-3.5" />
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('preview')}
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            tab === 'preview' ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-100',
+          )}
+        >
+          <Eye className="h-3.5 w-3.5" />
+          Preview
+        </button>
+      </div>
+
+      <div className="flex min-h-0 flex-1">
+        <div
+          className={cn(
+            'min-w-0 min-h-0 flex-1 border-r border-zinc-200',
+            tab === 'edit' ? 'flex' : 'hidden',
+            'md:flex',
+          )}
+        >
+          {left}
+        </div>
+        <div
+          className={cn(
+            'min-w-0 min-h-0 flex-1 bg-zinc-100 p-3 md:p-6',
+            tab === 'preview' ? 'flex' : 'hidden',
+            'md:flex',
+          )}
+        >
+          <div className="mx-auto w-full max-w-3xl flex-1 min-h-0">{right}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
