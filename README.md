@@ -4,6 +4,8 @@ A clean, static, **browser-only** Markdown editor with AI-powered structure form
 
 > **The promise:** the AI adds structure (headings, lists, bold, dividers). It never changes, summarizes, translates, or omits a single word of your writing.
 
+**🟢 Live demo:** https://10579516-ship-it.github.io/
+
 ## Features
 
 - **Split-pane editor** — raw Markdown on the left, live preview on the right.
