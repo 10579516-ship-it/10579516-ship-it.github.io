@@ -24,13 +24,11 @@ interface PreviewPaneProps {
  */
 export const PreviewPane = forwardRef<HTMLElement, PreviewPaneProps>(
   function PreviewPane({ content, themeId }, ref) {
-    // Note: `ReactMarkdown` doesn't accept `className` on its root,
-    // so we wrap it in an `<article>` and pass the className there.
     return (
       <article
         ref={ref as React.Ref<HTMLElement>}
         data-theme={themeId}
-        className={cn('prose-ghost h-full overflow-y-auto shadow-sm')}
+        className={cn('prose-ghost h-full w-full')}
       >
         {content.trim() ? (
           <ReactMarkdown

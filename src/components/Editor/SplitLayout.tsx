@@ -9,7 +9,7 @@ interface SplitLayoutProps {
 
 /**
  * Responsive split-pane:
- *   - md+ (≥768px): two columns side by side with a vertical divider.
+ *   - md+ (≥768px): two equal-width columns side by side, each filling its column.
  *   - below md: a tab toggle ("Edit" | "Preview") switches the pane.
  *
  * Internal state — the active tab only matters on mobile.
@@ -46,6 +46,7 @@ export function SplitLayout({ left, right }: SplitLayoutProps) {
       </div>
 
       <div className="flex min-h-0 flex-1">
+        {/* Left: editor — full width of its column */}
         <div
           className={cn(
             'min-w-0 min-h-0 flex-1 border-r border-zinc-200',
@@ -55,14 +56,15 @@ export function SplitLayout({ left, right }: SplitLayoutProps) {
         >
           {left}
         </div>
+        {/* Right: preview — full width of its column, small padding for the gutter */}
         <div
           className={cn(
-            'min-w-0 min-h-0 flex-1 bg-zinc-100 p-3 md:p-6',
+            'min-w-0 min-h-0 flex-1 overflow-y-auto bg-zinc-100 p-2 md:p-4',
             tab === 'preview' ? 'flex' : 'hidden',
             'md:flex',
           )}
         >
-          <div className="mx-auto w-full max-w-3xl flex-1 min-h-0">{right}</div>
+          <div className="flex min-h-0 w-full flex-1">{right}</div>
         </div>
       </div>
     </div>

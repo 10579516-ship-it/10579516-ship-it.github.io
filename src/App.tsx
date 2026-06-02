@@ -15,8 +15,6 @@ import {
   getContent,
   setContent as persistContent,
   getApiConfig,
-  setApiConfig as persistApiConfig,
-  clearApiConfig,
   getActiveThemeId,
   setActiveThemeId as persistThemeId,
 } from '@/data/storage';
@@ -24,7 +22,8 @@ import { getThemeMeta } from '@/data/themes';
 import { initialContent } from '@/data/initialContent';
 import { formatTextWithLocalRules } from '@/ai/localTypographer';
 import { importDocx, WordImportError } from '@/ai/wordImport';
-import { copyMarkdown, copyHtml, exportNodeAsPng } from '@/utils/export';
+import { copyMarkdown, exportNodeAsPng } from '@/utils/export';
+import { copyMarkdownAsWechat } from '@/utils/wechatFormat';
 import { cn } from '@/utils/cn';
 import type { ApiConfig } from '@/data/types';
 
@@ -127,12 +126,12 @@ export default function App() {
     }
   }, [content, pushToast]);
 
-  const handleCopyHtml = useCallback(async () => {
+  const handleCopyWechat = useCallback(async () => {
     try {
-      await copyHtml(content);
-      pushToast('success', 'HTML copied to clipboard.');
+      await copyMarkdownAsWechat(content);
+      pushToast('success', '已复制 — 直接在公众号编辑器粘贴（Ctrl/⌘+V）即可看到带样式效果。');
     } catch {
-      pushToast('error', 'Could not copy — clipboard permission denied?');
+      pushToast('error', '复制失败 — 浏览器可能拒绝了剪贴板权限。');
     }
   }, [content, pushToast]);
 
@@ -171,21 +170,6 @@ export default function App() {
     [pushToast],
   );
 
-  const handleSaveApi = useCallback(
-    (cfg: ApiConfig) => {
-      persistApiConfig(cfg);
-      setApiConfigState(cfg);
-      pushToast('success', 'API settings saved.');
-    },
-    [pushToast],
-  );
-
-  const handleClearApi = useCallback(() => {
-    clearApiConfig();
-    setApiConfigState(null);
-    pushToast('info', 'API key removed from this browser.');
-  }, [pushToast]);
-
   const handleResetContent = useCallback(() => {
     setContent(initialContent);
     persistContent(initialContent);
@@ -206,7 +190,7 @@ export default function App() {
         isAiLoading={ai.status === 'running'}
         isLocalLoading={isLocalLoading}
         onCopyMd={handleCopyMd}
-        onCopyHtml={handleCopyHtml}
+        onCopyWechat={handleCopyWechat}
         onExportPng={handleExportPng}
         onAiConvert={handleAiConvert}
         onLocalFormat={handleLocalFormat}
@@ -241,10 +225,11 @@ export default function App() {
       {/* Modals & drawers */}
       <ApiConfigModal
         open={showApiModal}
-        initial={apiConfig}
         onClose={() => setShowApiModal(false)}
-        onSave={handleSaveApi}
-        onClear={handleClearApi}
+        onSaved={(cfg) => {
+          setApiConfigState(cfg);
+          pushToast('success', 'API settings saved.');
+        }}
       />
       <ThemePicker
         open={showThemePicker}

@@ -1,74 +1,123 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Eye, EyeOff, ExternalLink, KeyRound, AlertTriangle } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
-import type { ApiConfig } from '@/data/types';
+import { providers, customProvider, findProvider, REGION_LABELS, type ProviderRegion, type ProviderPreset } from '@/data/providers';
 import { sanitizeApiKey, sanitizeEndpoint, sanitizeModel } from '@/utils/sanitize';
+import { getApiConfig, setApiConfig as persistApiConfig, clearApiConfig } from '@/data/storage';
+import type { ApiConfig } from '@/data/types';
+import { cn } from '@/utils/cn';
 
 interface ApiConfigModalProps {
   open: boolean;
-  initial: ApiConfig | null;
   onClose: () => void;
-  onSave: (cfg: ApiConfig) => void;
-  onClear: () => void;
+  onSaved?: (cfg: ApiConfig, providerId: string | null) => void;
 }
 
-const MODEL_PRESETS = [
-  'gpt-4o-mini',
-  'gpt-4o',
-  'deepseek-chat',
-  'moonshot-v1-8k',
-  'claude-3-5-sonnet-latest',
-  'llama3.1',
-];
+const PROVIDER_STORAGE_KEY = 'ghost-editor:api-provider';
 
-const ENDPOINT_PRESETS = [
-  'https://api.openai.com/v1',
-  'https://api.deepseek.com/v1',
-  'https://api.moonshot.cn/v1',
-  'https://openrouter.ai/api/v1',
-];
+function loadProviderId(): string {
+  try {
+    return localStorage.getItem(PROVIDER_STORAGE_KEY) ?? customProvider.id;
+  } catch {
+    return customProvider.id;
+  }
+}
+
+function saveProviderId(id: string) {
+  try {
+    localStorage.setItem(PROVIDER_STORAGE_KEY, id);
+  } catch {
+    // ignore
+  }
+}
 
 /**
  * Settings modal for the AI typographer.
- * Fields: API key (password-masked), endpoint, model. All sanitized
- * on save — both visually displayed values and the stored values
- * pass through the `sanitize*` helpers so accidental quotes / Bearer
- * prefixes get stripped.
+ *
+ * UX:
+ *   1. Pick a provider (grouped by region) — endpoint + default model
+ *      auto-fill. Both stay editable.
+ *   2. Paste your API key (sanitized on save: strips quotes + "Bearer ").
+ *   3. Save → stored in localStorage. Ghost Editor never sees the key
+ *      after the browser-level clipboard write to your chosen provider.
  */
-export function ApiConfigModal({ open, initial, onClose, onSave, onClear }: ApiConfigModalProps) {
+export function ApiConfigModal({ open, onClose, onSaved }: ApiConfigModalProps) {
+  const initial = open ? getApiConfig() : null;
+  const [providerId, setProviderId] = useState<string>(() => loadProviderId());
   const [apiKey, setApiKey] = useState(initial?.apiKey ?? '');
   const [endpoint, setEndpoint] = useState(initial?.apiEndpoint ?? 'https://api.openai.com/v1');
   const [model, setModel] = useState(initial?.model ?? 'gpt-4o-mini');
   const [showKey, setShowKey] = useState(false);
   const [touched, setTouched] = useState(false);
 
-  // Reset form whenever the modal opens with a different initial.
+  // Reset on open.
   useEffect(() => {
     if (open) {
-      setApiKey(initial?.apiKey ?? '');
-      setEndpoint(initial?.apiEndpoint ?? 'https://api.openai.com/v1');
-      setModel(initial?.model ?? 'gpt-4o-mini');
+      const cfg = getApiConfig();
+      const pid = loadProviderId();
+      setProviderId(pid);
+      setApiKey(cfg?.apiKey ?? '');
+      setEndpoint(cfg?.apiEndpoint ?? (findProvider(pid)?.endpoint ?? 'https://api.openai.com/v1'));
+      setModel(cfg?.model ?? (findProvider(pid)?.defaultModel ?? 'gpt-4o-mini'));
       setShowKey(false);
       setTouched(false);
     }
-  }, [open, initial]);
+  }, [open]);
+
+  const provider = useMemo(() => findProvider(providerId) ?? customProvider, [providerId]);
+
+  // Group providers by region for the <select>.
+  const grouped = useMemo(() => {
+    const out: Record<ProviderRegion, ProviderPreset[]> = { global: [], cn: [], local: [] };
+    for (const p of providers) out[p.region].push(p);
+    return out;
+  }, []);
+
+  // Datalist options: current provider's models + anything the user typed.
+  const modelDatalistId = `model-options-${providerId}`;
+  const endpointDatalistId = `endpoint-options-${providerId}`;
 
   const keyError =
     touched && apiKey.trim() === '' ? 'API key is required to use the AI typographer.' : null;
   const endpointError =
-    touched && !/^https?:\/\//.test(endpoint.trim()) ? 'Endpoint must start with http(s)://' : null;
+    touched && endpoint.trim() !== '' && !/^https?:\/\//.test(endpoint.trim())
+      ? 'Endpoint must start with http(s)://'
+      : null;
 
-  const canSave = apiKey.trim() !== '' && /^https?:\/\//.test(endpoint.trim()) && model.trim() !== '';
+  const canSave =
+    apiKey.trim() !== '' &&
+    (endpoint.trim() === '' || /^https?:\/\//.test(endpoint.trim())) &&
+    model.trim() !== '';
+
+  const handleProviderChange = (newId: string) => {
+    setProviderId(newId);
+    saveProviderId(newId);
+    if (newId === customProvider.id) return; // don't overwrite user's manual fields
+    const p = findProvider(newId);
+    if (p) {
+      setEndpoint(p.endpoint);
+      setModel(p.defaultModel);
+    }
+  };
 
   const handleSave = () => {
     setTouched(true);
     if (!canSave) return;
-    onSave({
+    const cfg: ApiConfig = {
       apiKey: sanitizeApiKey(apiKey),
       apiEndpoint: sanitizeEndpoint(endpoint),
       model: sanitizeModel(model),
-    });
+    };
+    persistApiConfig(cfg);
+    onSaved?.(cfg, providerId);
     onClose();
+  };
+
+  const handleClear = () => {
+    if (!confirm('Remove the saved API key from this browser?')) return;
+    clearApiConfig();
+    setApiKey('');
+    setTouched(true);
   };
 
   return (
@@ -83,6 +132,34 @@ export function ApiConfigModal({ open, initial, onClose, onSave, onClear }: ApiC
           </div>
         </div>
 
+        {/* Provider */}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-zinc-800">Provider</label>
+          <select
+            value={providerId}
+            onChange={(e) => handleProviderChange(e.target.value)}
+            className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-900"
+          >
+            {(Object.keys(grouped) as ProviderRegion[]).flatMap((region) => {
+              const items = grouped[region];
+              if (items.length === 0) return [];
+              return [
+                <optgroup key={region} label={REGION_LABELS[region]}>
+                  {items.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </optgroup>,
+              ];
+            })}
+            <option value={customProvider.id}>自定义 / Custom</option>
+          </select>
+          {provider.note && (
+            <p className="mt-1 text-xs text-zinc-500">{provider.note}</p>
+          )}
+        </div>
+
         {/* API key */}
         <div>
           <label className="mb-1 block text-sm font-medium text-zinc-800">API Key</label>
@@ -92,7 +169,7 @@ export function ApiConfigModal({ open, initial, onClose, onSave, onClear }: ApiC
               type={showKey ? 'text' : 'password'}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="sk-..."
+              placeholder={provider.keyUrl ? 'sk-...' : 'API key'}
               autoComplete="off"
               className="w-full rounded-md border border-zinc-200 bg-white py-2 pl-9 pr-10 font-mono text-sm outline-none focus:border-zinc-900"
             />
@@ -115,19 +192,19 @@ export function ApiConfigModal({ open, initial, onClose, onSave, onClear }: ApiC
             type="url"
             value={endpoint}
             onChange={(e) => setEndpoint(e.target.value)}
-            placeholder="https://api.openai.com/v1"
-            list="endpoint-presets"
+            placeholder={provider.endpoint}
+            list={endpointDatalistId}
             className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 font-mono text-sm outline-none focus:border-zinc-900"
           />
-          <datalist id="endpoint-presets">
-            {ENDPOINT_PRESETS.map((e) => (
-              <option key={e} value={e} />
+          <datalist id={endpointDatalistId}>
+            {providers.map((p) => (
+              <option key={p.id} value={p.endpoint} />
             ))}
           </datalist>
           {endpointError && <p className="mt-1 text-xs text-rose-600">{endpointError}</p>}
           <p className="mt-1 text-xs text-zinc-500">
-            OpenAI-compatible URL. The browser will POST to <code className="font-mono">{endpoint || '…'}/chat/completions</code>.
-            Your provider must allow CORS.
+            The browser POSTs to <code className="font-mono">{endpoint || '…'}/chat/completions</code>.
+            Your provider must allow CORS for browser-origin requests.
           </p>
         </div>
 
@@ -138,39 +215,56 @@ export function ApiConfigModal({ open, initial, onClose, onSave, onClear }: ApiC
             type="text"
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            placeholder="gpt-4o-mini"
-            list="model-presets"
+            placeholder={provider.defaultModel || 'model-name'}
+            list={modelDatalistId}
             className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 font-mono text-sm outline-none focus:border-zinc-900"
           />
-          <datalist id="model-presets">
-            {MODEL_PRESETS.map((m) => (
+          <datalist id={modelDatalistId}>
+            {provider.models.map((m) => (
               <option key={m} value={m} />
             ))}
           </datalist>
+          {provider.models.length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {provider.models.slice(0, 6).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setModel(m)}
+                  className={cn(
+                    'rounded-full border px-2 py-0.5 text-[11px] transition-colors',
+                    model === m
+                      ? 'border-zinc-900 bg-zinc-900 text-white'
+                      : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:text-zinc-900',
+                  )}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-2">
-          <a
-            href="https://platform.openai.com/api-keys"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-900"
-          >
-            <ExternalLink className="h-3 w-3" />
-            Get an OpenAI key
-          </a>
+        <div className="flex items-center justify-between gap-2 pt-2">
+          {provider.keyUrl ? (
+            <a
+              href={provider.keyUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-900"
+            >
+              <ExternalLink className="h-3 w-3" />
+              获取 {provider.name} 的 Key
+            </a>
+          ) : (
+            <span />
+          )}
           <div className="flex items-center gap-2">
             {initial && (
               <button
                 type="button"
-                onClick={() => {
-                  if (confirm('Remove the saved API key from this browser?')) {
-                    onClear();
-                    setApiKey('');
-                    setTouched(true);
-                  }
-                }}
+                onClick={handleClear}
                 className="rounded-md px-3 py-1.5 text-sm text-zinc-500 hover:text-rose-600"
               >
                 Forget key

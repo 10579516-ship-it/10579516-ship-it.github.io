@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import {
   Copy,
-  FileText,
   Image as ImageIcon,
   Sparkles,
   Wand2,
@@ -17,7 +16,7 @@ interface ToolbarProps {
   isAiLoading: boolean;
   isLocalLoading: boolean;
   onCopyMd: () => void;
-  onCopyHtml: () => void;
+  onCopyWechat: () => void;
   onExportPng: () => void;
   onAiConvert: () => void;
   onLocalFormat: () => void;
@@ -38,7 +37,7 @@ export function Toolbar({
   isAiLoading,
   isLocalLoading,
   onCopyMd,
-  onCopyHtml,
+  onCopyWechat,
   onExportPng,
   onAiConvert,
   onLocalFormat,
@@ -80,9 +79,9 @@ export function Toolbar({
           onClick={onCopyMd}
         />
         <IconButton
-          icon={<FileText className="h-[18px] w-[18px]" />}
-          tooltip="Copy as HTML"
-          onClick={onCopyHtml}
+          icon={<WechatIcon className="h-[18px] w-[18px]" />}
+          tooltip="复制到微信公众号（带样式粘贴）"
+          onClick={onCopyWechat}
         />
         <IconButton
           icon={<ImageIcon className="h-[18px] w-[18px]" />}
@@ -113,5 +112,28 @@ export function Toolbar({
       {/* Right: caller-provided slot (gear menu) */}
       <div className="flex items-center gap-1">{rightSlot}</div>
     </div>
+  );
+}
+
+/**
+ * WeChat icon — lucide-react doesn't ship a WeChat glyph, so we use a
+ * small inline SVG. Two overlapping speech bubbles, green-tinted.
+ */
+function WechatIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+      <circle cx="9" cy="11" r="0.5" fill="currentColor" />
+      <circle cx="13" cy="11" r="0.5" fill="currentColor" />
+    </svg>
   );
 }

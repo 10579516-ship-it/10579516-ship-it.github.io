@@ -257,7 +257,7 @@ body {
   font-family: var(--gh-font);
   font-size: 15px;
   line-height: 1.75;
-  padding: 2.5rem 3rem;
+  padding: 2.5rem max(2rem, 4vw);
   border-radius: 12px;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -266,6 +266,10 @@ body {
 
 @media (max-width: 768px) {
   .prose-ghost { padding: 1.5rem 1.25rem; border-radius: 0; font-size: 15px; }
+}
+
+@media (min-width: 1280px) {
+  .prose-ghost { padding: 3rem 5rem; font-size: 16px; }
 }
 
 .prose-ghost > *:first-child { margin-top: 0; }
