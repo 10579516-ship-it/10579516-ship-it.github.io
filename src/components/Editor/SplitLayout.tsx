@@ -9,10 +9,10 @@ interface SplitLayoutProps {
 
 /**
  * Responsive split-pane:
- *   - md+ (≥768px): two equal-width columns side by side, each filling its column.
+ *   - md+ (≥768px): CSS Grid with two equal columns (50/50), guaranteed by
+ *     `grid-cols-2` rather than flex-1. More robust against children that
+ *     try to grow.
  *   - below md: a tab toggle ("Edit" | "Preview") switches the pane.
- *
- * Internal state — the active tab only matters on mobile.
  */
 export function SplitLayout({ left, right }: SplitLayoutProps) {
   const [tab, setTab] = useState<'edit' | 'preview'>('edit');
@@ -45,21 +45,22 @@ export function SplitLayout({ left, right }: SplitLayoutProps) {
         </button>
       </div>
 
-      <div className="flex min-h-0 flex-1">
-        {/* Left: editor — full width of its column */}
+      {/* Mobile: stacked, single column. md+: 50/50 grid. */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-2">
+        {/* Left: editor — full column */}
         <div
           className={cn(
-            'min-w-0 min-h-0 flex-1 border-r border-zinc-200',
+            'flex min-w-0 min-h-0 border-zinc-200 md:border-r',
             tab === 'edit' ? 'flex' : 'hidden',
             'md:flex',
           )}
         >
           {left}
         </div>
-        {/* Right: preview — full width of its column, small padding for the gutter */}
+        {/* Right: preview — full column, gutter for the article */}
         <div
           className={cn(
-            'min-w-0 min-h-0 flex-1 overflow-y-auto bg-zinc-100 p-2 md:p-4',
+            'flex min-w-0 min-h-0 bg-zinc-100 p-2 md:p-4',
             tab === 'preview' ? 'flex' : 'hidden',
             'md:flex',
           )}

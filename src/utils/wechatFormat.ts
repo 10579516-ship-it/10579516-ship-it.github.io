@@ -7,14 +7,19 @@
  *   - Keeps inline `style="..."` attributes verbatim.
  *   - Renders a curated subset of HTML (p, h1–h6, blockquote, ul, ol, li,
  *     code, pre, a, img, table, thead, tbody, tr, th, td, hr, strong, em, etc.).
+ *   - **Does NOT preserve** `background-color` on body / section / generic
+ *     containers. **DOES preserve** it on code, pre, blockquote, th, td, hr.
+ *   - **Preserves** `color` and `font-family` on every element.
  *
- * So to paste nicely into WeChat, we need to render Markdown to HTML
- * with **inline styles only** — no classNames, no stylesheets.
+ * So the strategy:
+ *   1. Read the active theme's CSS variables from the live preview DOM
+ *      (via `getComputedStyle`).
+ *   2. Render Markdown to HTML with **inline styles** that use those
+ *      theme colors.
+ *   3. Skip section background-color (it'd be stripped anyway).
  *
- * This module renders Markdown to that format using React-Markdown
- * with a `components` map that injects `style={{...}}` props. React's
- * server-side renderer (`renderToStaticMarkup`) converts those
- * camelCase style objects to kebab-case CSS strings in the output.
+ * This way, pasting into 微信公众平台 produces typography that matches
+ * what the user sees in Ghost Editor.
  */
 
 import { createElement, type CSSProperties, type ReactNode } from 'react';
@@ -23,144 +28,272 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 /* ============================================================
-   WeChat-friendly style tokens
+   Theme type + DOM reader
    ============================================================ */
 
-const W = {
-  section: {
-    fontFamily:
-      '-apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
-    color: '#333333',
-    fontSize: '16px',
-    lineHeight: '1.75',
-    wordBreak: 'break-word',
-    maxWidth: '100%',
-  } satisfies CSSProperties,
+export interface WechatTheme {
+  fontFamily: string;
+  color: string;
+  h1: string;
+  h2: string;
+  h3: string;
+  quoteBg: string;
+  quoteBorder: string;
+  quoteFg: string;
+  codeBg: string;
+  codeFg: string;
+  hr: string;
+  tableBorder: string;
+  tableStripe: string;
+  link: string;
+}
 
-  h1: { fontSize: '22px', fontWeight: 'bold', margin: '1.5em 0 0.6em', color: '#000000' } satisfies CSSProperties,
-  h2: { fontSize: '20px', fontWeight: 'bold', margin: '1.4em 0 0.5em', color: '#000000' } satisfies CSSProperties,
-  h3: { fontSize: '18px', fontWeight: 'bold', margin: '1.2em 0 0.4em', color: '#1a1a1a' } satisfies CSSProperties,
-  h4: { fontSize: '16px', fontWeight: 'bold', margin: '1em 0 0.4em', color: '#1a1a1a' } satisfies CSSProperties,
-  h5: { fontSize: '15px', fontWeight: 'bold', margin: '1em 0 0.4em', color: '#1a1a1a' } satisfies CSSProperties,
-  h6: { fontSize: '14px', fontWeight: 'bold', margin: '1em 0 0.4em', color: '#666666' } satisfies CSSProperties,
+/** Fallback theme if the preview element isn't mounted yet. */
+export const DEFAULT_WECHAT_THEME: WechatTheme = {
+  fontFamily:
+    '-apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif',
+  color: '#1f2328',
+  h1: '#1f2328',
+  h2: '#1f2328',
+  h3: '#374151',
+  quoteBg: '#f6f8fa',
+  quoteBorder: '#d0d7de',
+  quoteFg: '#57606a',
+  codeBg: '#f6f8fa',
+  codeFg: '#1f2328',
+  hr: '#d0d7de',
+  tableBorder: '#d0d7de',
+  tableStripe: '#f6f8fa',
+  link: '#0969da',
+};
 
-  p: { margin: '1em 0', color: '#333333' } satisfies CSSProperties,
-
-  blockquote: {
-    margin: '1em 0',
-    padding: '0.6em 1em',
-    background: '#f7f7f7',
-    borderLeft: '3px solid #d0d0d0',
-    color: '#666666',
-  } satisfies CSSProperties,
-
-  code: {
-    fontFamily: 'Menlo, Consolas, monospace',
-    background: '#f5f5f5',
-    color: '#c7254e',
-    padding: '0.1em 0.35em',
-    borderRadius: '3px',
-    fontSize: '0.9em',
-    margin: '0 0.1em',
-  } satisfies CSSProperties,
-
-  pre: {
-    margin: '1em 0',
-    padding: '0.9em 1.1em',
-    background: '#f5f5f5',
-    color: '#333333',
-    borderRadius: '6px',
-    overflowX: 'auto',
-    fontFamily: 'Menlo, Consolas, monospace',
-    fontSize: '14px',
-    lineHeight: '1.5',
-  } satisfies CSSProperties,
-
-  ul: { margin: '1em 0', paddingLeft: '1.8em', listStyle: 'disc' } satisfies CSSProperties,
-  ol: { margin: '1em 0', paddingLeft: '1.8em', listStyle: 'decimal' } satisfies CSSProperties,
-  li: { margin: '0.3em 0', color: '#333333' } satisfies CSSProperties,
-
-  a: { color: '#576b95', textDecoration: 'none', borderBottom: '1px solid #576b95' } satisfies CSSProperties,
-
-  hr: { border: 'none', borderTop: '1px solid #e5e5e5', margin: '2em 0' } satisfies CSSProperties,
-
-  img: { maxWidth: '100%', height: 'auto', display: 'block', margin: '1em auto', borderRadius: '4px' } satisfies CSSProperties,
-
-  table: {
-    borderCollapse: 'collapse',
-    width: '100%',
-    margin: '1em 0',
-    fontSize: '14px',
-  } satisfies CSSProperties,
-  th: {
-    border: '1px solid #dddddd',
-    padding: '0.5em 0.8em',
-    textAlign: 'left',
-    fontWeight: 'bold',
-    background: '#f5f5f5',
-    color: '#1a1a1a',
-  } satisfies CSSProperties,
-  td: {
-    border: '1px solid #dddddd',
-    padding: '0.5em 0.8em',
-    color: '#333333',
-  } satisfies CSSProperties,
-
-  strong: { fontWeight: 'bold', color: '#1a1a1a' } satisfies CSSProperties,
-  em: { fontStyle: 'italic' } satisfies CSSProperties,
-  del: { color: '#999999', textDecoration: 'line-through' } satisfies CSSProperties,
-} as const;
+/**
+ * Read the active theme's CSS custom properties from a rendered
+ * `.prose-ghost` element. Returns sensible defaults if any var is missing.
+ */
+export function readThemeFromElement(el: HTMLElement): WechatTheme {
+  const cs = getComputedStyle(el);
+  const v = (name: string, fallback: string): string => {
+    const val = cs.getPropertyValue(name).trim();
+    return val || fallback;
+  };
+  return {
+    fontFamily: v('--gh-font', DEFAULT_WECHAT_THEME.fontFamily),
+    color: v('--gh-fg', DEFAULT_WECHAT_THEME.color),
+    h1: v('--gh-h1', DEFAULT_WECHAT_THEME.h1),
+    h2: v('--gh-h2', DEFAULT_WECHAT_THEME.h2),
+    h3: v('--gh-h3', DEFAULT_WECHAT_THEME.h3),
+    quoteBg: v('--gh-quote-bg', DEFAULT_WECHAT_THEME.quoteBg),
+    quoteBorder: v('--gh-quote-border', DEFAULT_WECHAT_THEME.quoteBorder),
+    quoteFg: v('--gh-quote-fg', DEFAULT_WECHAT_THEME.quoteFg),
+    codeBg: v('--gh-code-bg', DEFAULT_WECHAT_THEME.codeBg),
+    codeFg: v('--gh-code-fg', DEFAULT_WECHAT_THEME.codeFg),
+    hr: v('--gh-hr', DEFAULT_WECHAT_THEME.hr),
+    tableBorder: v('--gh-table-border', DEFAULT_WECHAT_THEME.tableBorder),
+    tableStripe: v('--gh-table-stripe', DEFAULT_WECHAT_THEME.tableStripe),
+    link: v('--gh-accent', DEFAULT_WECHAT_THEME.link),
+  };
+}
 
 /* ============================================================
-   Component map — every Markdown element gets a WeChat style.
-   We do NOT support nested style overrides per-element, because
-   WeChat's editor doesn't honor complex selectors anyway. A flat
-   set of rules is what actually works.
+   Component factory — returns a fresh components map for ReactMarkdown
+   with the supplied theme. Every element gets a `style="..."` attribute
+   using theme colors.
    ============================================================ */
 
-type AnyProps = { children?: ReactNode; node?: unknown; [k: string]: unknown };
+type AnyProps = { children?: ReactNode; node?: unknown; className?: string; [k: string]: unknown };
 
-const Wc = (tag: keyof React.JSX.IntrinsicElements, baseStyle: CSSProperties) =>
+const Wc = (
+  tag: keyof React.JSX.IntrinsicElements,
+  baseStyle: CSSProperties,
+  extraStyle?: (props: AnyProps) => CSSProperties,
+) =>
   // eslint-disable-next-line react/display-name
-  ({ children, ...rest }: AnyProps) =>
-    createElement(tag, { ...rest, style: { ...baseStyle, ...(rest.style as CSSProperties | undefined) } }, children);
+  ({ children, ...rest }: AnyProps) => {
+    const merged: CSSProperties = extraStyle
+      ? { ...baseStyle, ...extraStyle(rest) }
+      : baseStyle;
+    // Allow per-call overrides (e.g. style on a code-block) to take precedence.
+    const finalStyle: CSSProperties = rest.style
+      ? { ...merged, ...(rest.style as CSSProperties) }
+      : merged;
+    return createElement(tag, { ...rest, style: finalStyle }, children);
+  };
 
-const wechatComponents = {
-  h1: Wc('h1', W.h1),
-  h2: Wc('h2', W.h2),
-  h3: Wc('h3', W.h3),
-  h4: Wc('h4', W.h4),
-  h5: Wc('h5', W.h5),
-  h6: Wc('h6', W.h6),
-  p: Wc('p', W.p),
-  blockquote: Wc('blockquote', W.blockquote),
-  // Inline code: no `pre` parent.
-  code: ({ children, className, ...rest }: AnyProps) => {
-    // If the parent is <pre>, this is a fenced code block — style the pre
-    // and let code be plain. Otherwise it's inline code.
-    const isBlock = className && /language-/.test(String(className));
-    if (isBlock) {
-      return createElement('code', { ...rest, className, style: { fontFamily: 'inherit', background: 'transparent', color: 'inherit', padding: 0 } }, children);
-    }
-    return createElement('code', { ...rest, style: W.code }, children);
-  },
-  pre: Wc('pre', W.pre),
-  ul: Wc('ul', W.ul),
-  ol: Wc('ol', W.ol),
-  li: Wc('li', W.li),
-  a: ({ children, ...rest }: AnyProps) => createElement('a', { ...rest, target: '_blank', rel: 'noreferrer', style: W.a }, children),
-  hr: Wc('hr', W.hr),
-  img: Wc('img', W.img),
-  table: Wc('table', W.table),
-  thead: ({ children }: AnyProps) => createElement('thead', { style: { background: '#f5f5f5' } }, children),
-  tbody: ({ children }: AnyProps) => createElement('tbody', { style: {} }, children),
-  tr: ({ children }: AnyProps) => createElement('tr', { style: {} }, children),
-  th: Wc('th', W.th),
-  td: Wc('td', W.td),
-  strong: Wc('strong', W.strong),
-  em: Wc('em', W.em),
-  del: Wc('del', W.del),
-};
+export function makeWechatComponents(theme: WechatTheme) {
+  return {
+    h1: Wc('h1', {
+      fontSize: '22px',
+      fontWeight: 'bold',
+      margin: '1.5em 0 0.6em',
+      color: theme.h1,
+      fontFamily: theme.fontFamily,
+    }),
+    h2: Wc('h2', {
+      fontSize: '20px',
+      fontWeight: 'bold',
+      margin: '1.4em 0 0.5em',
+      color: theme.h2,
+      fontFamily: theme.fontFamily,
+      paddingBottom: '0.3em',
+      borderBottom: `1px solid ${theme.hr}`,
+    }),
+    h3: Wc('h3', {
+      fontSize: '18px',
+      fontWeight: 'bold',
+      margin: '1.2em 0 0.4em',
+      color: theme.h3,
+      fontFamily: theme.fontFamily,
+    }),
+    h4: Wc('h4', {
+      fontSize: '16px',
+      fontWeight: 'bold',
+      margin: '1em 0 0.4em',
+      color: theme.h3,
+      fontFamily: theme.fontFamily,
+    }),
+    h5: Wc('h5', {
+      fontSize: '15px',
+      fontWeight: 'bold',
+      margin: '1em 0 0.4em',
+      color: theme.h3,
+      fontFamily: theme.fontFamily,
+    }),
+    h6: Wc('h6', {
+      fontSize: '14px',
+      fontWeight: 'bold',
+      margin: '1em 0 0.4em',
+      color: theme.h3,
+      fontFamily: theme.fontFamily,
+      textTransform: 'uppercase',
+      letterSpacing: '0.05em',
+    }),
+
+    p: Wc('p', {
+      margin: '1em 0',
+      color: theme.color,
+      fontFamily: theme.fontFamily,
+      fontSize: '16px',
+      lineHeight: '1.75',
+    }),
+
+    blockquote: Wc('blockquote', {
+      margin: '1em 0',
+      padding: '0.6em 1em',
+      background: theme.quoteBg,
+      borderLeft: `3px solid ${theme.quoteBorder}`,
+      color: theme.quoteFg,
+      fontFamily: theme.fontFamily,
+      borderRadius: '0 4px 4px 0',
+    }),
+
+    // Inline code: no `pre` parent.
+    code: ({ children, className, ...rest }: AnyProps) => {
+      const isBlock = className && /language-/.test(String(className));
+      if (isBlock) {
+        return createElement('code', {
+          ...rest,
+          className,
+          style: {
+            fontFamily: 'Menlo, Consolas, monospace',
+            background: 'transparent',
+            color: 'inherit',
+            padding: 0,
+            fontSize: 'inherit',
+            border: 'none',
+            borderRadius: 0,
+          },
+        }, children);
+      }
+      return createElement('code', {
+        ...rest,
+        style: {
+          fontFamily: 'Menlo, Consolas, monospace',
+          background: theme.codeBg,
+          color: theme.codeFg,
+          padding: '0.1em 0.35em',
+          borderRadius: '3px',
+          fontSize: '0.9em',
+          margin: '0 0.1em',
+          border: 'none',
+        },
+      }, children);
+    },
+
+    pre: Wc('pre', {
+      margin: '1em 0',
+      padding: '0.9em 1.1em',
+      background: theme.codeBg,
+      color: theme.codeFg,
+      borderRadius: '6px',
+      overflowX: 'auto',
+      fontFamily: 'Menlo, Consolas, monospace',
+      fontSize: '14px',
+      lineHeight: '1.5',
+      border: 'none',
+    }),
+
+    ul: Wc('ul', { margin: '1em 0', paddingLeft: '1.8em', listStyle: 'disc', color: theme.color, fontFamily: theme.fontFamily }),
+    ol: Wc('ol', { margin: '1em 0', paddingLeft: '1.8em', listStyle: 'decimal', color: theme.color, fontFamily: theme.fontFamily }),
+    li: Wc('li', { margin: '0.3em 0', color: theme.color, fontFamily: theme.fontFamily, fontSize: '16px', lineHeight: '1.75' }),
+
+    a: ({ children, ...rest }: AnyProps) =>
+      createElement('a', {
+        ...rest,
+        target: '_blank',
+        rel: 'noreferrer',
+        style: {
+          color: theme.link,
+          textDecoration: 'none',
+          borderBottom: `1px solid ${theme.link}`,
+          fontFamily: theme.fontFamily,
+        },
+      }, children),
+
+    hr: Wc('hr', {
+      border: 'none',
+      borderTop: `1px solid ${theme.hr}`,
+      margin: '2em 0',
+    }),
+
+    img: Wc('img', {
+      maxWidth: '100%',
+      height: 'auto',
+      display: 'block',
+      margin: '1em auto',
+      borderRadius: '4px',
+    }),
+
+    table: Wc('table', {
+      borderCollapse: 'collapse',
+      width: '100%',
+      margin: '1em 0',
+      fontSize: '14px',
+      fontFamily: theme.fontFamily,
+    }),
+    thead: ({ children }: AnyProps) =>
+      createElement('thead', { style: { background: theme.tableStripe } }, children),
+    tbody: ({ children }: AnyProps) => createElement('tbody', { style: {} }, children),
+    tr: ({ children }: AnyProps) => createElement('tr', { style: {} }, children),
+    th: Wc('th', {
+      border: `1px solid ${theme.tableBorder}`,
+      padding: '0.5em 0.8em',
+      textAlign: 'left',
+      fontWeight: 'bold',
+      color: theme.color,
+      background: theme.tableStripe,
+    }),
+    td: Wc('td', {
+      border: `1px solid ${theme.tableBorder}`,
+      padding: '0.5em 0.8em',
+      color: theme.color,
+    }),
+
+    strong: Wc('strong', { fontWeight: 'bold', color: theme.color, fontFamily: theme.fontFamily }),
+    em: Wc('em', { fontStyle: 'italic', color: theme.color, fontFamily: theme.fontFamily }),
+    del: Wc('del', { color: theme.quoteFg, textDecoration: 'line-through', fontFamily: theme.fontFamily }),
+  };
+}
 
 /* ============================================================
    Public API
@@ -169,17 +302,31 @@ const wechatComponents = {
 /**
  * Render Markdown to a WeChat-compatible HTML string with inline styles.
  * The output is wrapped in a `<section>` with body typography.
+ *
+ * Note: we intentionally do NOT set a background on the `<section>` —
+ * WeChat strips background-color on body-level containers, and a stray
+ * background on a top-level wrapper sometimes also blocks the editor's
+ * own theme from showing through.
  */
-export function renderWechatHtml(markdown: string): string {
+export function renderWechatHtml(markdown: string, theme: WechatTheme = DEFAULT_WECHAT_THEME): string {
   const inner = renderToStaticMarkup(
     createElement(ReactMarkdown, {
       remarkPlugins: [remarkGfm],
-      components: wechatComponents as never,
+      components: makeWechatComponents(theme) as never,
       children: markdown,
     }),
   );
-  // Wrap in a section with body styles. `<section>` is safe in WeChat.
-  return `<section style="${cssObjectToString(W.section)}">${inner}</section>`;
+  // Section-level: only typography (color, font, size, line-height, maxWidth).
+  // No background-color — WeChat strips it on the root container anyway.
+  const sectionStyle: CSSProperties = {
+    color: theme.color,
+    fontFamily: theme.fontFamily,
+    fontSize: '16px',
+    lineHeight: '1.75',
+    wordBreak: 'break-word',
+    maxWidth: '100%',
+  };
+  return `<section style="${cssObjectToString(sectionStyle)}">${inner}</section>`;
 }
 
 /**
@@ -188,8 +335,11 @@ export function renderWechatHtml(markdown: string): string {
  * Markdown) to the clipboard, so the user can paste into WeChat's
  * editor and get rich formatting.
  */
-export async function copyMarkdownAsWechat(markdown: string): Promise<void> {
-  const html = renderWechatHtml(markdown);
+export async function copyMarkdownAsWechat(
+  markdown: string,
+  theme: WechatTheme = DEFAULT_WECHAT_THEME,
+): Promise<void> {
+  const html = renderWechatHtml(markdown, theme);
   const item = new ClipboardItem({
     'text/html': new Blob([html], { type: 'text/html' }),
     'text/plain': new Blob([markdown], { type: 'text/plain' }),

@@ -23,7 +23,7 @@ import { initialContent } from '@/data/initialContent';
 import { formatTextWithLocalRules } from '@/ai/localTypographer';
 import { importDocx, WordImportError } from '@/ai/wordImport';
 import { copyMarkdown, exportNodeAsPng } from '@/utils/export';
-import { copyMarkdownAsWechat } from '@/utils/wechatFormat';
+import { copyMarkdownAsWechat, readThemeFromElement, DEFAULT_WECHAT_THEME } from '@/utils/wechatFormat';
 import { cn } from '@/utils/cn';
 import type { ApiConfig } from '@/data/types';
 
@@ -127,9 +127,14 @@ export default function App() {
   }, [content, pushToast]);
 
   const handleCopyWechat = useCallback(async () => {
+    // Read the active theme's colors from the live preview DOM so the
+    // pasted result matches what the user sees in the editor.
+    const theme = previewRef.current
+      ? readThemeFromElement(previewRef.current)
+      : DEFAULT_WECHAT_THEME;
     try {
-      await copyMarkdownAsWechat(content);
-      pushToast('success', '已复制 — 直接在公众号编辑器粘贴（Ctrl/⌘+V）即可看到带样式效果。');
+      await copyMarkdownAsWechat(content, theme);
+      pushToast('success', '已复制 — 粘贴到公众号编辑器即可看到当前主题配色。');
     } catch {
       pushToast('error', '复制失败 — 浏览器可能拒绝了剪贴板权限。');
     }
