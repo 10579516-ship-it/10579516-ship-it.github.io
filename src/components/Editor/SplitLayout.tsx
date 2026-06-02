@@ -47,22 +47,26 @@ export function SplitLayout({ left, right }: SplitLayoutProps) {
 
       {/* Mobile: stacked, single column. md+: 50/50 grid. */}
       <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-2">
-        {/* Left: editor — full column */}
+        {/* Left: editor — full column. As a grid item, no `display: flex`
+            here, otherwise the inner EditorPane becomes a flex item with
+            `flex: 0 1 auto` and shrinks to its textarea's intrinsic width
+            (~160px), leaving the rest of the 50% column empty. */}
         <div
           className={cn(
-            'flex min-w-0 min-h-0 border-zinc-200 md:border-r',
-            tab === 'edit' ? 'flex' : 'hidden',
-            'md:flex',
+            'min-w-0 min-h-0 border-zinc-200 md:border-r',
+            tab === 'edit' ? 'block' : 'hidden',
+            'md:block',
           )}
         >
           {left}
         </div>
-        {/* Right: preview — full column, gutter for the article */}
+        {/* Right: preview — full column, gutter for the article. Same:
+            not a flex container, so the inner wrapper fills 100% width. */}
         <div
           className={cn(
-            'flex min-w-0 min-h-0 bg-zinc-100 p-2 md:p-4',
-            tab === 'preview' ? 'flex' : 'hidden',
-            'md:flex',
+            'min-w-0 min-h-0 bg-zinc-100 p-2 md:p-4',
+            tab === 'preview' ? 'block' : 'hidden',
+            'md:block',
           )}
         >
           <div className="flex min-h-0 w-full flex-1">{right}</div>

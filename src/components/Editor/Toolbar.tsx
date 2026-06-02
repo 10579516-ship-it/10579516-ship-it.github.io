@@ -47,9 +47,10 @@ export function Toolbar({
   rightSlot,
 }: ToolbarProps) {
   return (
-    <div className="flex shrink-0 items-center justify-between gap-2 border-b border-zinc-200 bg-white px-3 py-1.5 lg:px-4">
-      {/* Left: theme indicator + guide */}
-      <div className="flex items-center gap-1">
+    <div className="flex shrink-0 items-center justify-between gap-2 overflow-x-auto border-b border-zinc-200 bg-white px-3 py-1.5 lg:px-4">
+      {/* Left: theme indicator + guide. shrink-0 so it never compresses
+          when the center group is wide. */}
+      <div className="flex shrink-0 items-center gap-1">
         <button
           type="button"
           onClick={onOpenThemePicker}
@@ -71,8 +72,10 @@ export function Toolbar({
         />
       </div>
 
-      {/* Center: copy / export / format / import */}
-      <div className="flex items-center gap-1">
+      {/* Center: copy / export / format / import. shrink-0 so the buttons
+          keep their natural size and the toolbar can scroll horizontally
+          on narrow viewports instead of clipping them. */}
+      <div className="flex shrink-0 items-center gap-1">
         <IconButton
           icon={<Copy className="h-[18px] w-[18px]" />}
           tooltip="Copy as Markdown"
@@ -110,7 +113,7 @@ export function Toolbar({
       </div>
 
       {/* Right: caller-provided slot (gear menu) */}
-      <div className="flex items-center gap-1">{rightSlot}</div>
+      <div className="flex shrink-0 items-center gap-1">{rightSlot}</div>
     </div>
   );
 }
