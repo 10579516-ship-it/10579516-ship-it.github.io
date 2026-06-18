@@ -1,20 +1,1224 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="description" content="Ghost Editor — a clean, static Markdown editor with AI-powered structure formatting." />
-    <title>Ghost Editor</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ghost Editor — Markdown 进，WeChat 出</title>
+  <meta name="description" content="浏览器里的 Markdown 编辑器。一键复制到公众号、小红书、知乎、头条，带主题样式。服务器不留痕。" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&family=Fraunces:opsz,wght,SOFT@9..144,400..900,0..100&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================================
+       TOKENS — 稿纸 manuscript paper, ink, cinnabar seal
+       ============================================================ */
+    :root {
+      --paper:        #F4ECD8;
+      --paper-deep:   #E8D9C4;
+      --paper-grid:   #D8B89E;
+      --paper-edge:   #D9C8A8;
+      --ink:          #1A1714;
+      --ink-faded:    #7A6E5D;
+      --ink-light:    #B5A88E;
+      --cinnabar:     #C8392A;
+      --cinnabar-deep:#8B1A1A;
+      --seal:         #B83227;
+
+      /* theme variables — also overridable by [data-theme] */
+      --t-text:    var(--ink);
+      --t-bg:      var(--paper);
+      --t-accent:  var(--cinnabar);
+      --t-rule:    var(--paper-deep);
+      --t-quote:   var(--ink-faded);
+
+      --maxw: 1180px;
+      --gutter: clamp(20px, 4vw, 56px);
+      --serif-cn: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+      --serif-en: 'Fraunces', 'Noto Serif SC', serif;
+      --sans-cn:  'Noto Sans SC', 'PingFang SC', system-ui, sans-serif;
+      --sans-en:  'Inter', system-ui, sans-serif;
+      --mono:     'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    /* ============================================================
+       BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--sans-cn);
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--ink);
+      background-color: var(--paper);
+      /* paper grain — subtle SVG noise via background-image */
+      background-image:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10 0 0 0 0 0.09 0 0 0 0 0.07 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+        repeating-linear-gradient(
+          0deg,
+          transparent 0,
+          transparent 31px,
+          rgba(216, 184, 158, 0.18) 31px,
+          rgba(216, 184, 158, 0.18) 32px
+        );
+      background-size: 240px 240px, auto;
+      background-attachment: fixed, fixed;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* ============================================================
+       SEAL STAMP — 印章 brand mark
+       ============================================================ */
+    .seal {
+      display: inline-block;
+      width: 56px;
+      height: 56px;
+      flex: none;
+      transform-origin: center;
+      animation: seal-breathe 4.6s ease-in-out infinite;
+      transition: transform .35s cubic-bezier(.2,.8,.2,1);
+    }
+    .seal-lg { width: 96px; height: 96px; }
+    .seal:hover { transform: rotate(-2deg) scale(1.04); }
+    @keyframes seal-breathe {
+      0%, 100% { opacity: .94; }
+      50%      { opacity: 1; }
+    }
+    .seal-mark { fill: var(--seal); }
+    .seal-char {
+      fill: var(--paper);
+      font-family: var(--serif-cn);
+      font-weight: 900;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+    .seal-lg .seal-char { font-size: 48px; }
+
+    /* ============================================================
+       HEADER
+       ============================================================ */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      background: rgba(244, 236, 216, 0.82);
+      border-bottom: 1px solid var(--paper-edge);
+    }
+    .site-header__inner {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 14px var(--gutter);
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+    .brand__word {
+      font-family: var(--serif-en);
+      font-weight: 600;
+      font-size: 19px;
+      font-variation-settings: "opsz" 24, "SOFT" 30;
+      letter-spacing: -0.01em;
+    }
+    .brand__word em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--ink-faded);
+      font-variation-settings: "opsz" 24, "SOFT" 80;
+    }
+    .nav {
+      margin-left: auto;
+      display: flex;
+      gap: 28px;
+      font-family: var(--sans-en);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink-faded);
+    }
+    .nav a {
+      color: inherit;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .nav a:hover { color: var(--ink); }
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 2px;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--sans-en);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: transform .15s, background .15s;
+    }
+    .cta:hover { background: #000; transform: translateY(-1px); }
+    .cta--seal {
+      background: var(--seal);
+      color: var(--paper);
+    }
+    .cta--seal:hover { background: var(--cinnabar-deep); }
+
+    /* ============================================================
+       HERO
+       ============================================================ */
+    .hero {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: clamp(48px, 8vw, 96px) var(--gutter) clamp(40px, 6vw, 72px);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 56px;
+      position: relative;
+    }
+    .hero__eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faded);
+    }
+    .hero__eyebrow::before {
+      content: "";
+      width: 24px;
+      height: 1px;
+      background: var(--ink-faded);
+    }
+    .hero__eyebrow .dot {
+      width: 4px; height: 4px;
+      background: var(--seal);
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .hero__title {
+      font-family: var(--serif-cn);
+      font-weight: 900;
+      font-size: clamp(48px, 8vw, 104px);
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin: 18px 0 0;
+    }
+    .hero__title .lat {
+      font-family: var(--serif-en);
+      font-style: italic;
+      font-weight: 500;
+      font-variation-settings: "opsz" 144, "SOFT" 50;
+      color: var(--cinnabar-deep);
+    }
+    .hero__title .ghost {
+      display: inline-block;
+      position: relative;
+      padding-right: 6px;
+    }
+    .hero__title .ghost::after {
+      content: "_";
+      position: absolute;
+      right: -8px;
+      color: var(--seal);
+      animation: caret 1.05s steps(2, end) infinite;
+      font-weight: 500;
+    }
+    @keyframes caret { 50% { opacity: 0; } }
+
+    .hero__sub {
+      max-width: 640px;
+      font-family: var(--sans-cn);
+      font-size: clamp(16px, 1.4vw, 19px);
+      line-height: 1.85;
+      color: var(--ink);
+      margin-top: 24px;
+    }
+    .hero__sub .lat {
+      font-family: var(--serif-en);
+      font-style: italic;
+      font-weight: 500;
+      font-variation-settings: "opsz" 14, "SOFT" 60;
+      color: var(--ink-faded);
+    }
+
+    .hero__ctas {
+      display: flex;
+      gap: 14px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .hero__ctas .cta--primary {
+      padding: 13px 22px;
+      font-size: 14px;
+    }
+    .hero__ctas .meta {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--ink-faded);
+      letter-spacing: 0.04em;
+    }
+    .hero__seal {
+      position: absolute;
+      top: clamp(48px, 8vw, 96px);
+      right: clamp(20px, 4vw, 56px);
+      transform: rotate(-6deg);
+      opacity: 0.96;
+    }
+
+    /* ============================================================
+       DEMO EDITOR — split: source | preview
+       ============================================================ */
+    .demo {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 0 var(--gutter) clamp(48px, 6vw, 80px);
+    }
+    .editor {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border: 1px solid var(--paper-edge);
+      background: var(--paper);
+      box-shadow:
+        0 1px 0 rgba(26, 23, 20, 0.04),
+        0 24px 60px -28px rgba(26, 23, 20, 0.28),
+        0 2px 8px -4px rgba(26, 23, 20, 0.08);
+      min-height: 420px;
+      overflow: hidden;
+      position: relative;
+    }
+    .editor__pane {
+      padding: 28px clamp(20px, 2.4vw, 36px);
+      position: relative;
+    }
+    .editor__pane + .editor__pane {
+      border-left: 1px solid var(--paper-edge);
+    }
+    .editor__bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-faded);
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+      border-bottom: 1px dashed var(--paper-edge);
+    }
+    .editor__bar .pip {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--seal);
+      display: inline-block;
+    }
+    .editor__bar .pip--ink { background: var(--ink); }
+    .editor__bar .pip--rule { background: transparent; border: 1px solid var(--ink-faded); }
+    .editor__bar .label { margin-left: 6px; }
+    .editor__bar .meta { margin-left: auto; opacity: 0.7; }
+
+    /* source pane — mono */
+    .editor__source {
+      font-family: var(--mono);
+      font-size: 13.5px;
+      line-height: 1.85;
+      color: var(--ink);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      tab-size: 2;
+    }
+    .editor__source .tok-tag    { color: var(--cinnabar); font-weight: 500; }
+    .editor__source .tok-emph   { color: var(--ink); }
+    .editor__source .tok-strong { color: var(--ink); font-weight: 600; }
+    .editor__source .tok-meta   { color: var(--ink-faded); }
+    .editor__source .tok-text   { color: var(--ink); }
+
+    /* preview pane — WeChat-styled article */
+    .editor__preview {
+      font-family: var(--sans-cn);
+      color: var(--t-text);
+      background: var(--t-bg);
+      margin: -28px calc(-1 * clamp(20px, 2.4vw, 36px));
+      padding: 28px clamp(20px, 2.4vw, 36px);
+    }
+    .preview-article > :first-child { margin-top: 0; }
+    .preview-article h1 {
+      font-family: var(--serif-cn);
+      font-weight: 900;
+      font-size: 28px;
+      line-height: 1.25;
+      letter-spacing: -0.005em;
+      color: var(--t-text);
+      margin: 0 0 18px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--t-accent);
+    }
+    .preview-article p {
+      font-size: 15.5px;
+      line-height: 1.95;
+      margin: 0 0 16px;
+      color: var(--t-text);
+    }
+    .preview-article blockquote {
+      margin: 18px 0;
+      padding: 4px 0 4px 16px;
+      border-left: 3px solid var(--t-accent);
+      color: var(--t-quote);
+      font-family: var(--serif-cn);
+      font-style: normal;
+      font-weight: 500;
+    }
+    .preview-article blockquote p { margin: 0; color: inherit; }
+    .preview-article strong { color: var(--t-text); font-weight: 700; }
+    .preview-article em {
+      font-family: var(--serif-en);
+      font-style: italic;
+      font-weight: 500;
+      font-variation-settings: "opsz" 14, "SOFT" 60;
+      color: var(--t-accent);
+    }
+    .preview-article code {
+      font-family: var(--mono);
+      font-size: 0.92em;
+      padding: 1px 6px;
+      background: rgba(26, 23, 20, 0.06);
+      border-radius: 2px;
+    }
+
+    .theme-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 18px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-faded);
+    }
+    .theme-bar__label { margin-right: 4px; }
+    .theme-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border: 1px solid var(--paper-edge);
+      background: transparent;
+      color: var(--ink);
+      font-family: var(--sans-en);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .15s, border-color .15s, color .15s;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    .theme-chip__swatch {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 0 1px rgba(26, 23, 20, 0.12) inset;
+    }
+    .theme-chip:hover { border-color: var(--ink-faded); }
+    .theme-chip[aria-pressed="true"] {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+
+    /* ============================================================
+       SECTION — generic
+       ============================================================ */
+    section.block {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: clamp(56px, 8vw, 96px) var(--gutter);
+      position: relative;
+    }
+    .block__head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 24px;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--paper-edge);
+    }
+    .block__num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-faded);
+    }
+    .block__title {
+      font-family: var(--serif-cn);
+      font-weight: 700;
+      font-size: clamp(28px, 3.4vw, 42px);
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      margin: 8px 0 0;
+      color: var(--ink);
+    }
+    .block__title .lat {
+      font-family: var(--serif-en);
+      font-style: italic;
+      font-weight: 500;
+      font-variation-settings: "opsz" 60, "SOFT" 60;
+      color: var(--cinnabar-deep);
+    }
+    .block__kicker {
+      font-family: var(--serif-cn);
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--ink-faded);
+      letter-spacing: 0.04em;
+      text-align: right;
+      max-width: 320px;
+    }
+
+    /* ============================================================
+       FEATURES — three cards
+       ============================================================ */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border-top: 1px solid var(--paper-edge);
+      border-bottom: 1px solid var(--paper-edge);
+    }
+    .feature {
+      padding: 36px 32px 32px;
+      position: relative;
+      border-left: 1px solid var(--paper-edge);
+    }
+    .feature:first-child { border-left: 0; }
+    .feature__index {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--ink-faded);
+    }
+    .feature__title {
+      font-family: var(--serif-cn);
+      font-weight: 700;
+      font-size: 24px;
+      line-height: 1.25;
+      margin: 14px 0 6px;
+      color: var(--ink);
+    }
+    .feature__title .lat {
+      font-family: var(--serif-en);
+      font-style: italic;
+      font-weight: 500;
+      font-variation-settings: "opsz" 24, "SOFT" 60;
+      color: var(--cinnabar-deep);
+      font-size: 18px;
+      display: block;
+      margin-top: 2px;
+    }
+    .feature__body {
+      font-size: 14.5px;
+      line-height: 1.75;
+      color: var(--ink-faded);
+      margin: 14px 0 0;
+    }
+    .feature__seal {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      opacity: 0.85;
+    }
+
+    /* ============================================================
+       THEMES — gallery grid
+       ============================================================ */
+    .themes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .theme-card {
+      border: 1px solid var(--paper-edge);
+      padding: 28px 26px 24px;
+      display: flex;
+      flex-direction: column;
+      min-height: 240px;
+      position: relative;
+      transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s;
+    }
+    .theme-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 36px -22px rgba(26, 23, 20, 0.25);
+    }
+    .theme-card__bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .theme-card__swatch {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      box-shadow: 0 0 0 1px rgba(26, 23, 20, 0.18) inset;
+    }
+    .theme-card__name {
+      font-family: var(--serif-cn);
+      font-weight: 700;
+      font-size: 17px;
+      color: var(--ink);
+    }
+    .theme-card__name .lat {
+      font-family: var(--serif-en);
+      font-style: italic;
+      font-weight: 500;
+      font-variation-settings: "opsz" 18, "SOFT" 60;
+      color: var(--ink-faded);
+      margin-left: 4px;
+      font-size: 14px;
+    }
+    .theme-card__sample {
+      flex: 1;
+      padding: 16px 18px;
+      background: var(--paper-deep);
+      border-radius: 2px;
+    }
+    .theme-card__sample h4 {
+      margin: 0 0 8px;
+      font-family: var(--serif-cn);
+      font-weight: 700;
+      font-size: 17px;
+      line-height: 1.3;
+      color: var(--t-text, var(--ink));
+    }
+    .theme-card__sample p {
+      margin: 0;
+      font-family: var(--sans-cn);
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: var(--t-text, var(--ink-faded));
+    }
+    .theme-card__sample em {
+      color: var(--t-accent, var(--cinnabar));
+      font-family: var(--serif-en);
+      font-style: italic;
+      font-variation-settings: "opsz" 14, "SOFT" 60;
+    }
+
+    /* per-theme tokens applied via inline data attribute */
+    .theme-card[data-theme="ink"]       { --t-text: #0E2A26; --t-accent: #1F5C53; }
+    .theme-card[data-theme="midnight"]  { --t-text: #F0E8D2; --t-bg: #1A1714; --t-accent: #C8392A; --t-rule: #2B2620; }
+    .theme-card[data-theme="cinnabar"]  { --t-text: #5A1A14; --t-accent: #C8392A; }
+    .theme-card[data-theme="celadon"]   { --t-text: #1F4040; --t-accent: #4F8686; }
+    .theme-card[data-theme="parchment"] { --t-text: #4A3826; --t-accent: #8B5A2B; }
+    .theme-card[data-theme="indigo"]    { --t-text: #1A1A4A; --t-accent: #4A4A8B; }
+    .theme-card[data-theme="midnight"] .theme-card__sample { background: var(--t-bg); border: 1px solid #2B2620; }
+    /* New breathable themes — match the editor's [data-theme] tokens */
+    .theme-card[data-theme="tea-mist"]   { --t-text: #3a2a1f; --t-accent: #b58070; }
+    .theme-card[data-theme="rice-paper"] { --t-text: #2c2823; --t-accent: #6b5d4a; }
+    .theme-card[data-theme="ink-wash"]   { --t-text: #2a2826; --t-accent: #6b6b6b; }
+    .theme-card[data-theme="soft-plum"]  { --t-text: #3d2a28; --t-accent: #8b5c5c; }
+    .theme-card[data-theme="cinnabar-manuscript"] { --t-text: #1a1714; --t-accent: #c8392a; }
+    .theme-card[data-theme="cinnabar-manuscript"] .theme-card__sample { background: #f4ecd8; }
+
+    /* ============================================================
+       PUBLISH — four platforms
+       ============================================================ */
+    .publish-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      border: 1px solid var(--paper-edge);
+    }
+    .publish-card {
+      padding: 32px 26px;
+      border-left: 1px solid var(--paper-edge);
+      text-decoration: none;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: background .2s;
+    }
+    .publish-card:first-child { border-left: 0; }
+    .publish-card:hover { background: rgba(216, 184, 158, 0.18); }
+    .publish-card__icon {
+      width: 36px; height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cinnabar-deep);
+    }
+    .publish-card__name {
+      font-family: var(--serif-cn);
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--ink);
+    }
+    .publish-card__name .lat {
+      font-family: var(--serif-en);
+      font-style: italic;
+      font-weight: 500;
+      font-variation-settings: "opsz" 18, "SOFT" 60;
+      color: var(--ink-faded);
+      font-size: 14px;
+      display: block;
+      margin-top: 2px;
+    }
+    .publish-card__note {
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: var(--ink-faded);
+      margin: 0;
+    }
+    .publish-card__tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--seal);
+      text-transform: uppercase;
+      margin-top: auto;
+    }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    .site-footer {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: clamp(56px, 8vw, 96px) var(--gutter) 48px;
+      border-top: 1px solid var(--paper-edge);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      align-items: end;
+    }
+    .footer__lockup {
+      font-family: var(--serif-cn);
+      font-size: 14px;
+      color: var(--ink-faded);
+      line-height: 1.8;
+    }
+    .footer__lockup .lat {
+      font-family: var(--serif-en);
+      font-style: italic;
+      font-weight: 500;
+      font-variation-settings: "opsz" 14, "SOFT" 60;
+      color: var(--ink-faded);
+    }
+    .footer__lockup strong {
+      color: var(--ink);
+      font-weight: 700;
+      font-family: var(--serif-cn);
+    }
+    .footer__links {
+      display: flex;
+      gap: 24px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+    }
+    .footer__links a {
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color .15s;
+    }
+    .footer__links a:hover { border-bottom-color: var(--seal); }
+    .footer__seal {
+      transform: rotate(4deg);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 860px) {
+      .nav { display: none; }
+      .hero__seal { display: none; }
+      .editor { grid-template-columns: 1fr; }
+      .editor__pane + .editor__pane { border-left: 0; border-top: 1px solid var(--paper-edge); }
+      .features { grid-template-columns: 1fr; }
+      .feature { border-left: 0; border-top: 1px solid var(--paper-edge); }
+      .feature:first-child { border-top: 0; }
+      .themes-grid { grid-template-columns: 1fr; }
+      .publish-grid { grid-template-columns: 1fr 1fr; }
+      .publish-card { border-left: 0; border-top: 1px solid var(--paper-edge); }
+      .publish-card:nth-child(odd) { border-right: 1px solid var(--paper-edge); }
+      .publish-card:nth-child(-n+2) { border-top: 0; }
+      .block__head { grid-template-columns: 1fr; align-items: start; }
+      .block__kicker { text-align: left; }
+      .site-footer { grid-template-columns: 1fr; align-items: start; }
+    }
+
+    @media (max-width: 480px) {
+      .publish-grid { grid-template-columns: 1fr; }
+      .publish-card { border-right: 0 !important; border-top: 1px solid var(--paper-edge) !important; }
+      .publish-card:first-child { border-top: 0 !important; }
+      .hero__ctas .cta--primary { width: 100%; justify-content: center; }
+    }
+
+    /* ============================================================
+       REDUCED MOTION
+       ============================================================ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+
+    /* ============================================================
+       FOCUS
+       ============================================================ */
+    a:focus-visible, button:focus-visible, .theme-chip:focus-visible {
+      outline: 2px solid var(--seal);
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       HEADER
+       ============================================================ -->
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="#top">
+        <svg class="seal" viewBox="0 0 100 100" aria-hidden="true">
+          <rect class="seal-mark" x="6" y="6" width="88" height="88" rx="2" />
+          <rect x="6" y="6" width="88" height="88" rx="2" fill="none" stroke="#F4ECD8" stroke-width="2" stroke-opacity="0.5"/>
+          <text class="seal-char" x="50" y="42" text-anchor="middle">幽</text>
+          <text class="seal-char" x="50" y="80" text-anchor="middle">灵</text>
+        </svg>
+        <span class="brand__word">Ghost <em>Editor</em></span>
+      </a>
+
+      <nav class="nav" aria-label="primary">
+        <a href="#features">特性</a>
+        <a href="#themes">主题</a>
+        <a href="#publish">发布</a>
+        <a href="https://github.com/10579516-ship-it/10579516-ship-it.github.io" target="_blank" rel="noopener">源码</a>
+      </nav>
+
+      <a class="cta cta--seal" href="./editor.html">打开编辑器 →</a>
+    </div>
+  </header>
+
+  <a id="top"></a>
+
+  <!-- ============================================================
+       HERO
+       ============================================================ -->
+  <section class="hero">
+    <div class="hero__seal" aria-hidden="true">
+      <svg class="seal seal-lg" viewBox="0 0 100 100">
+        <rect class="seal-mark" x="4" y="4" width="92" height="92" rx="3" />
+        <rect x="4" y="4" width="92" height="92" rx="3" fill="none" stroke="#F4ECD8" stroke-width="2" stroke-opacity="0.5"/>
+        <text class="seal-char" x="50" y="42" text-anchor="middle">幽</text>
+        <text class="seal-char" x="50" y="82" text-anchor="middle">灵</text>
+      </svg>
+    </div>
+
+    <div>
+      <div class="hero__eyebrow">
+        <span>Manuscript 01</span>
+        <span class="dot"></span>
+        <span>稿纸 · Ghost Editor</span>
+      </div>
+
+      <h1 class="hero__title">
+        Markdown 进。<br>
+        <span class="lat">WeChat</span> 出<span class="ghost"></span>
+      </h1>
+
+      <p class="hero__sub">
+        浏览器里的 Markdown 编辑器。<span class="lat">Ghost</span> 是住在你本地的编辑器。
+        一键复制到公众号、小红书、知乎、头条 —— <span class="lat">themes</span> 跟着过去，
+        字体行距样式都留着。服务器不留痕，<span class="lat">your API Key</span> 只在 <span class="lat">localStorage</span>。
+      </p>
+
+      <div class="hero__ctas">
+        <a class="cta cta--seal cta--primary" href="./editor.html">打开编辑器</a>
+        <a class="cta" href="https://github.com/10579516-ship-it/10579516-ship-it.github.io" target="_blank" rel="noopener">GitHub 源码</a>
+        <span class="meta">// no signup · no server · ~1MB</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       DEMO — split editor
+       ============================================================ -->
+  <section class="demo" id="demo" aria-label="live demo">
+    <div class="editor" data-theme="default">
+      <!-- SOURCE PANE -->
+      <div class="editor__pane">
+        <div class="editor__bar">
+          <span class="pip pip--rule"></span>
+          <span class="pip pip--ink"></span>
+          <span class="pip"></span>
+          <span class="label">untitled.md</span>
+          <span class="meta">utf-8 · 142 字</span>
+        </div>
+        <pre class="editor__source" aria-hidden="true"><span class="tok-meta"># </span><span class="tok-tag">在路上</span>
+
+我从城里出发，沿着公路往北。
+
+走了七公里，路灯就断了，
+只剩下车灯切开前方的<span class="tok-emph">黑</span>。
+
+<span class="tok-meta">&gt; </span><span class="tok-text">我们走过的每一条路，</span>
+<span class="tok-meta">&gt; </span><span class="tok-text">都会在某个夜里重新遇见。</span>
+
+**黑夜给了我黑色的眼睛**
+*我却用它寻找光明*</pre>
+      </div>
+
+      <!-- PREVIEW PANE -->
+      <div class="editor__pane">
+        <div class="editor__bar">
+          <span class="pip pip--ink"></span>
+          <span class="label">预览 · Preview</span>
+          <span class="meta">WeChat-ready · inline styles</span>
+        </div>
+        <article class="editor__preview preview-article" id="preview">
+          <h1>在路上</h1>
+          <p>我从城里出发，沿着公路往北。</p>
+          <p>走了七公里，路灯就断了，只剩下车灯切开前方的<em>黑</em>。</p>
+          <blockquote>
+            <p>我们走过的每一条路，<br>都会在某个夜里重新遇见。</p>
+          </blockquote>
+          <p><strong>黑夜给了我黑色的眼睛</strong><br><em>我却用它寻找光明</em></p>
+        </article>
+      </div>
+    </div>
+
+    <!-- THEME SWITCHER -->
+    <div class="theme-bar" role="group" aria-label="主题切换">
+      <span class="theme-bar__label">主题 ·</span>
+      <button class="theme-chip" type="button" data-theme="default" aria-pressed="true">
+        <span class="theme-chip__swatch" style="background:#1A1714"></span> 默认
+      </button>
+      <button class="theme-chip" type="button" data-theme="tea-mist" aria-pressed="false">
+        <span class="theme-chip__swatch" style="background:#b58070"></span> 茶雾
+      </button>
+      <button class="theme-chip" type="button" data-theme="rice-paper" aria-pressed="false">
+        <span class="theme-chip__swatch" style="background:#6b5d4a"></span> 米纸
+      </button>
+      <button class="theme-chip" type="button" data-theme="cinnabar-manuscript" aria-pressed="false">
+        <span class="theme-chip__swatch" style="background:#c8392a"></span> 朱砂稿纸
+      </button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FEATURES — three cards
+       ============================================================ -->
+  <section class="block" id="features">
+    <div class="block__head">
+      <div>
+        <div class="block__num">§ 01 — Three reasons</div>
+        <h2 class="block__title">
+          三个理由 <span class="lat">to write here</span>
+        </h2>
+      </div>
+      <div class="block__kicker">
+        不是又一个 Markdown 编辑器。
+        它为发布而写，为中文写作者而写。
+      </div>
+    </div>
+
+    <div class="features">
+      <article class="feature">
+        <div class="feature__seal" aria-hidden="true">
+          <svg class="seal" viewBox="0 0 100 100">
+            <rect class="seal-mark" x="6" y="6" width="88" height="88" rx="2"/>
+            <text class="seal-char" x="50" y="42" text-anchor="middle">幽</text>
+            <text class="seal-char" x="50" y="80" text-anchor="middle">灵</text>
+          </svg>
+        </div>
+        <div class="feature__index">— 01</div>
+        <h3 class="feature__title">
+          二十套主题
+          <span class="lat">Fifteen themes</span>
+        </h3>
+        <p class="feature__body">
+          从墨黑到青瓷，从朱砂到茶雾、米纸、水墨、软梅。<br>
+          每套主题都带着自己的字号、字距、引用样式、行距和分隔线。
+          你的字，选一种属于它的样子。
+        </p>
+      </article>
+
+      <article class="feature">
+        <div class="feature__seal" aria-hidden="true">
+          <svg class="seal" viewBox="0 0 100 100">
+            <rect class="seal-mark" x="6" y="6" width="88" height="88" rx="2"/>
+            <text class="seal-char" x="50" y="42" text-anchor="middle">幽</text>
+            <text class="seal-char" x="50" y="80" text-anchor="middle">灵</text>
+          </svg>
+        </div>
+        <div class="feature__index">— 02</div>
+        <h3 class="feature__title">
+          一键发布到四家
+          <span class="lat">Publish with one click</span>
+        </h3>
+        <p class="feature__body">
+          公众号、小红书、知乎、头条——<br>
+          每个平台的样式约定不一样。<br>
+          复制时按平台生成对应的内联样式，
+          主题色跟着过去。
+        </p>
+      </article>
+
+      <article class="feature">
+        <div class="feature__seal" aria-hidden="true">
+          <svg class="seal" viewBox="0 0 100 100">
+            <rect class="seal-mark" x="6" y="6" width="88" height="88" rx="2"/>
+            <text class="seal-char" x="50" y="42" text-anchor="middle">幽</text>
+            <text class="seal-char" x="50" y="80" text-anchor="middle">灵</text>
+          </svg>
+        </div>
+        <div class="feature__index">— 03</div>
+        <h3 class="feature__title">
+          浏览器直连
+          <span class="lat">Browser-direct</span>
+        </h3>
+        <p class="feature__body">
+          没有账号，没有服务器，没有中间人。<br>
+          你的 API Key 只在 <em>localStorage</em>。
+          你的文字只在你的设备上。
+          <em>Ghost</em> 住在浏览器里。
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       THEMES — gallery
+       ============================================================ -->
+  <section class="block" id="themes">
+    <div class="block__head">
+      <div>
+        <div class="block__num">§ 02 — Themes</div>
+        <h2 class="block__title">
+          二十套主题 <span class="lat">for every register</span>
+        </h2>
+      </div>
+      <div class="block__kicker">
+        选一种气质，让它替你的字说话。
+      </div>
+    </div>
+
+    <div class="themes-grid">
+      <article class="theme-card" data-theme="cinnabar-manuscript">
+        <div class="theme-card__bar">
+          <span class="theme-card__swatch" style="background:#C8392A"></span>
+          <span class="theme-card__name">朱砂稿纸 <span class="lat">Cinnabar Manuscript</span></span>
+        </div>
+        <div class="theme-card__sample">
+          <h4>稿纸上的字</h4>
+          <p>墨黑落在<em>暖纸</em>上，行距 2.0，最朴素的样貌，留最大的余地。</p>
+        </div>
+      </article>
+
+      <article class="theme-card" data-theme="tea-mist">
+        <div class="theme-card__bar">
+          <span class="theme-card__swatch" style="background:#B58070"></span>
+          <span class="theme-card__name">茶雾 <span class="lat">Tea Mist</span></span>
+        </div>
+        <div class="theme-card__sample">
+          <h4>茶汤里的字</h4>
+          <p>暖雾、<em>旧玫瑰</em>。行距 1.95，虚线分隔。</p>
+        </div>
+      </article>
+
+      <article class="theme-card" data-theme="rice-paper">
+        <div class="theme-card__bar">
+          <span class="theme-card__swatch" style="background:#6B5D4A"></span>
+          <span class="theme-card__name">米纸 <span class="lat">Rice Paper</span></span>
+        </div>
+        <div class="theme-card__sample">
+          <h4>米色的字</h4>
+          <p>白米、<em>胡桃</em>。最像经书的暖白。</p>
+        </div>
+      </article>
+
+      <article class="theme-card" data-theme="ink-wash">
+        <div class="theme-card__bar">
+          <span class="theme-card__swatch" style="background:#6B6B6B"></span>
+          <span class="theme-card__name">水墨 <span class="lat">Ink Wash</span></span>
+        </div>
+        <div class="theme-card__sample">
+          <h4>水墨的字</h4>
+          <p>软灰、<em>烟</em>色。最素的中文版式。</p>
+        </div>
+      </article>
+
+      <article class="theme-card" data-theme="soft-plum">
+        <div class="theme-card__bar">
+          <span class="theme-card__swatch" style="background:#8B5C5C"></span>
+          <span class="theme-card__name">软梅 <span class="lat">Soft Plum</span></span>
+        </div>
+        <div class="theme-card__sample">
+          <h4>软梅的字</h4>
+          <p>暖腮红、<em>暗梅</em>。双线分隔，温柔。</p>
+        </div>
+      </article>
+
+      <article class="theme-card" data-theme="default">
+        <div class="theme-card__bar">
+          <span class="theme-card__swatch" style="background:#1A1714"></span>
+          <span class="theme-card__name">默认 <span class="lat">Default</span></span>
+        </div>
+        <div class="theme-card__sample">
+          <h4>稿纸上的字</h4>
+          <p>暖纸 + <em>朱砂</em>。编辑器的默认气质。</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PUBLISH — four platforms
+       ============================================================ -->
+  <section class="block" id="publish">
+    <div class="block__head">
+      <div>
+        <div class="block__num">§ 03 — Publish</div>
+        <h2 class="block__title">
+          一键发布 <span class="lat">to where you write</span>
+        </h2>
+      </div>
+      <div class="block__kicker">
+        选中目标平台，按一下。
+        剩下的事情 Ghost 处理。
+      </div>
+    </div>
+
+    <div class="publish-grid">
+      <a class="publish-card" href="#">
+        <span class="publish-card__icon" aria-hidden="true">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <path d="M12 8c0-2 1-3 3-3h6c2 0 3 1 3 3v2c2 0 4 1 4 4v11c0 3-2 5-5 5h-10c-3 0-5-2-5-5V14c0-3 2-4 4-4v-2z" stroke="currentColor" stroke-width="1.6" fill="none"/>
+            <circle cx="14" cy="18" r="1.5" fill="currentColor"/>
+            <circle cx="22" cy="18" r="1.5" fill="currentColor"/>
+          </svg>
+        </span>
+        <span class="publish-card__name">微信公众号<span class="lat">WeChat Official</span></span>
+        <p class="publish-card__note">内联样式 + 主题色。粘贴即所见。</p>
+        <span class="publish-card__tag">// paste-ready</span>
+      </a>
+
+      <a class="publish-card" href="#">
+        <span class="publish-card__icon" aria-hidden="true">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <rect x="6" y="6" width="24" height="24" rx="3" stroke="currentColor" stroke-width="1.6" fill="none"/>
+            <path d="M11 13h14M11 18h10M11 23h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="publish-card__name">小红书<span class="lat">RED Note</span></span>
+        <p class="publish-card__note">适合图文笔记的紧凑排版。</p>
+        <span class="publish-card__tag">// compact</span>
+      </a>
+
+      <a class="publish-card" href="#">
+        <span class="publish-card__icon" aria-hidden="true">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <path d="M9 12h18M9 18h12M9 24h15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            <circle cx="28" cy="12" r="2" stroke="currentColor" stroke-width="1.6" fill="none"/>
+          </svg>
+        </span>
+        <span class="publish-card__name">知乎<span class="lat">Zhihu</span></span>
+        <p class="publish-card__note">行距宽松，链接与代码块原样。</p>
+        <span class="publish-card__tag">// longform</span>
+      </a>
+
+      <a class="publish-card" href="#">
+        <span class="publish-card__icon" aria-hidden="true">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <path d="M8 9l20 9-20 9V9z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="publish-card__name">头条<span class="lat">Toutiao</span></span>
+        <p class="publish-card__note">适合资讯流的紧凑字号。</p>
+        <span class="publish-card__tag">// news-flow</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer class="site-footer">
+    <div class="footer__lockup">
+      <strong>稿纸 · Ghost Editor</strong> <span class="lat">— a Markdown editor for Chinese writers</span><br>
+      <span class="lat">v1.0 · MIT License · pure-static · no telemetry · no signup</span><br>
+      <span class="lat">made with ink, paper, and a vermillion seal.</span>
+    </div>
+
+    <div class="footer__seal" aria-hidden="true">
+      <svg class="seal seal-lg" viewBox="0 0 100 100">
+        <rect class="seal-mark" x="4" y="4" width="92" height="92" rx="3"/>
+        <rect x="4" y="4" width="92" height="92" rx="3" fill="none" stroke="#F4ECD8" stroke-width="2" stroke-opacity="0.5"/>
+        <text class="seal-char" x="50" y="42" text-anchor="middle">幽</text>
+        <text class="seal-char" x="50" y="82" text-anchor="middle">灵</text>
+      </svg>
+    </div>
+
+    <div class="footer__links" style="grid-column: 1 / -1; margin-top: 12px;">
+      <a href="https://github.com/10579516-ship-it/10579516-ship-it.github.io" target="_blank" rel="noopener">github</a>
+      <a href="./editor.html">live demo</a>
+      <a href="#top">↑ back to top</a>
+    </div>
+  </footer>
+
+  <!-- ============================================================
+       SCRIPT — theme switcher (small)
+       ============================================================ -->
+  <script type="module">
+    (function () {
+      var chips = document.querySelectorAll('.theme-chip');
+      var editor = document.querySelector('.editor');
+      var preview = document.getElementById('preview');
+      if (!chips.length || !editor || !preview) return;
+
+      // per-theme preview tokens — match editor [data-theme] palette
+      var themes = {
+        default:                { '--t-text': '#1A1714', '--t-bg': '#F4ECD8', '--t-accent': '#C8392A', '--t-quote': '#7A6E5D' },
+        'tea-mist':             { '--t-text': '#3A2A1F', '--t-bg': '#F3ECDC', '--t-accent': '#B58070', '--t-quote': '#6A4A36' },
+        'rice-paper':           { '--t-text': '#2C2823', '--t-bg': '#FAF6EC', '--t-accent': '#6B5D4A', '--t-quote': '#5A4E3E' },
+        'cinnabar-manuscript':  { '--t-text': '#1A1714', '--t-bg': '#F4ECD8', '--t-accent': '#C8392A', '--t-quote': '#5A3E30' }
+      };
+
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          var t = chip.getAttribute('data-theme');
+          chips.forEach(function (c) { c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'); });
+          var map = themes[t];
+          if (!map) return;
+          Object.keys(map).forEach(function (k) { preview.style.setProperty(k, map[k]); });
+        });
+      });
+    })();
+  </script>
+
+</body>
 </html>
