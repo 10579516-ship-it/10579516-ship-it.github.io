@@ -6,9 +6,28 @@
    Each theme overrides CSS custom properties on a `data-theme`
    attribute set on the preview root. The `.prose-ghost` block
    below applies the variables to every markdown element.
+
+   Two token families:
+     1. Color tokens (`--gh-*`): bg, fg, accent, h1, quote, code...
+     2. Typography tokens (`--gh-*`):
+        --gh-line-height      : paragraph line-height
+        --gh-letter-spacing   : CJK letter-spacing
+        --gh-page-padding[-md|-lg] : vertical/horizontal padding
+        --gh-max-width        : article max-width
+        --gh-rule-length      : hr width (e.g. 50%, 100%)
+        --gh-rule-style       : hr style (solid | dashed | double)
+        --gh-rule-weight      : hr thickness
+        --gh-p-spacing        : paragraph margin
+        --gh-heading-spacing  : heading top margin
+        --gh-radius[-lg]      : border-radius
+
+   Each theme sets BOTH color and typography tokens so the article
+   has its own breathing pattern. Most themes aim for line-height
+   1.85–2.0 and 0.02–0.04em letter-spacing for CJK readability.
    ============================================================ */
 
 :root {
+  /* ---- color defaults ---- */
   --gh-bg: #ffffff;
   --gh-fg: #1f2328;
   --gh-accent: #2563eb;
@@ -26,10 +45,45 @@
   --gh-table-border: #d0d7de;
   --gh-table-stripe: #f6f8fa;
   --gh-link: #2563eb;
-  --gh-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --gh-font-heading: 'Outfit', 'Inter', system-ui, sans-serif;
+
+  /* ---- font defaults ---- */
+  --gh-font: 'Inter', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --gh-font-heading: 'Outfit', 'Inter', system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --gh-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* ---- typography defaults — every theme overrides these ---- */
+  --gh-line-height:     1.85;
+  --gh-letter-spacing:  0.01em;
+  --gh-page-padding:    1.5rem 1.75rem;
+  --gh-page-padding-md: 2rem 2.5rem;
+  --gh-page-padding-lg: 2.5rem 3rem;
+  --gh-max-width:       720px;
+  --gh-rule-length:     60%;
+  --gh-rule-style:      solid;
+  --gh-rule-weight:     1px;
+  --gh-p-spacing:       0.9em;
+  --gh-heading-spacing: 1.6em;
+  --gh-radius:          8px;
+  --gh-radius-lg:       10px;
 }
+
+/* ============================================================
+   BUILT-IN THEMES
+   ------------------------------------------------------------
+   Conventions:
+     - Light themes: line-height 1.85–2.0, generous padding,
+       letter-spacing 0.01–0.04em, rule-length 50–100%.
+     - Dark themes (kept for backward compat): warmer, slightly
+       higher line-height + more letter-spacing so they don't
+       feel cramped; never use pure #000.
+     - New "breathable" themes (16–20): explicitly airy.
+
+   Token table (line-height | padding | rule-length):
+     light     1.85   | 2rem 2.5rem  | 65–80%
+     warm      1.95   | 2rem 2.5rem  | 50–60%
+     airy      2.0    | 2.5rem 3rem  | 45–55%
+     dark      1.95   | 2rem 2.5rem  | 55%
+   ============================================================ */
 
 /* 1. Notion Classic */
 [data-theme="notion-classic"] {
@@ -43,6 +97,15 @@
   --gh-link: #2383e2;
   --gh-font: 'Inter', system-ui, sans-serif;
   --gh-font-heading: 'Outfit', 'Inter', system-ui, sans-serif;
+  --gh-line-height: 1.85;
+  --gh-letter-spacing: 0.01em;
+  --gh-page-padding: 1.5rem 1.75rem;
+  --gh-page-padding-md: 2rem 2.25rem;
+  --gh-page-padding-lg: 2.25rem 2.75rem;
+  --gh-max-width: 720px;
+  --gh-rule-length: 80%;
+  --gh-p-spacing: 0.9em;
+  --gh-heading-spacing: 1.6em;
 }
 
 /* 2. Manus Minimal */
@@ -55,6 +118,15 @@
   --gh-code-bg: #f1efea; --gh-code-fg: #b45309; --gh-code-border: #e7e5e0;
   --gh-hr: #e7e5e0; --gh-table-border: #e7e5e0; --gh-table-stripe: #f5f4ee;
   --gh-link: #d97706;
+  --gh-line-height: 1.95;
+  --gh-letter-spacing: 0.02em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.5rem 3rem;
+  --gh-page-padding-lg: 3rem 3.5rem;
+  --gh-max-width: 680px;
+  --gh-rule-length: 50%;
+  --gh-p-spacing: 1em;
+  --gh-heading-spacing: 1.8em;
 }
 
 /* 3. Google Material */
@@ -67,6 +139,14 @@
   --gh-code-bg: #f8f9fa; --gh-code-fg: #c5221f; --gh-code-border: #dadce0;
   --gh-hr: #dadce0; --gh-table-border: #dadce0; --gh-table-stripe: #f8f9fa;
   --gh-link: #1a73e8;
+  --gh-line-height: 1.85;
+  --gh-letter-spacing: 0.01em;
+  --gh-page-padding: 1.5rem 1.75rem;
+  --gh-page-padding-md: 2rem 2.25rem;
+  --gh-page-padding-lg: 2.5rem 2.75rem;
+  --gh-max-width: 720px;
+  --gh-rule-length: 75%;
+  --gh-p-spacing: 0.9em;
 }
 
 /* 4. Red Note (Xiaohongshu) */
@@ -81,6 +161,14 @@
   --gh-link: #ff2442;
   --gh-font: 'Outfit', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --gh-font-heading: 'Outfit', 'PingFang SC', sans-serif;
+  --gh-line-height: 1.95;
+  --gh-letter-spacing: 0.02em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.5rem 2.75rem;
+  --gh-page-padding-lg: 3rem 3.25rem;
+  --gh-max-width: 680px;
+  --gh-rule-length: 60%;
+  --gh-p-spacing: 1em;
 }
 
 /* 5. GitHub Light */
@@ -93,9 +181,17 @@
   --gh-code-bg: #afb8c133; --gh-code-fg: #1f2328; --gh-code-border: #d0d7de;
   --gh-hr: #d0d7de; --gh-table-border: #d0d7de; --gh-table-stripe: #f6f8fa;
   --gh-link: #0969da;
+  --gh-line-height: 1.85;
+  --gh-letter-spacing: 0;
+  --gh-page-padding: 1.5rem 1.75rem;
+  --gh-page-padding-md: 2rem 2.25rem;
+  --gh-page-padding-lg: 2.5rem 2.75rem;
+  --gh-max-width: 760px;
+  --gh-rule-length: 100%;
+  --gh-p-spacing: 0.9em;
 }
 
-/* 6. Tokyo Night */
+/* 6. Tokyo Night — kept dark but warm + airy */
 [data-theme="tokyo-night"] {
   --gh-bg: #1a1b26;
   --gh-fg: #c0caf5;
@@ -107,6 +203,14 @@
   --gh-link: #7aa2f7;
   --gh-font: 'Inter', system-ui, sans-serif;
   --gh-font-heading: 'Outfit', 'Inter', sans-serif;
+  --gh-line-height: 1.95;
+  --gh-letter-spacing: 0.02em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.5rem 2.75rem;
+  --gh-page-padding-lg: 3rem 3.25rem;
+  --gh-max-width: 680px;
+  --gh-rule-length: 55%;
+  --gh-p-spacing: 1em;
 }
 
 /* 7. Everforest */
@@ -119,6 +223,15 @@
   --gh-code-bg: #232a2e; --gh-code-fg: #dbbc7f; --gh-code-border: #475258;
   --gh-hr: #475258; --gh-table-border: #475258; --gh-table-stripe: #232a2e;
   --gh-link: #a7c080;
+  --gh-line-height: 2.0;
+  --gh-letter-spacing: 0.025em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.5rem 3rem;
+  --gh-page-padding-lg: 3rem 3.5rem;
+  --gh-max-width: 680px;
+  --gh-rule-length: 50%;
+  --gh-p-spacing: 1.1em;
+  --gh-heading-spacing: 1.8em;
 }
 
 /* 8. Nord Frost */
@@ -131,6 +244,14 @@
   --gh-code-bg: #3b4252; --gh-code-fg: #a3be8c; --gh-code-border: #434c5e;
   --gh-hr: #434c5e; --gh-table-border: #434c5e; --gh-table-stripe: #3b4252;
   --gh-link: #88c0d0;
+  --gh-line-height: 1.95;
+  --gh-letter-spacing: 0.02em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.5rem 2.75rem;
+  --gh-page-padding-lg: 3rem 3.25rem;
+  --gh-max-width: 680px;
+  --gh-rule-length: 55%;
+  --gh-p-spacing: 1em;
 }
 
 /* 9. Dracula */
@@ -143,6 +264,14 @@
   --gh-code-bg: #44475a; --gh-code-fg: #50fa7b; --gh-code-border: #6272a4;
   --gh-hr: #6272a4; --gh-table-border: #6272a4; --gh-table-stripe: #44475a;
   --gh-link: #8be9fd;
+  --gh-line-height: 1.95;
+  --gh-letter-spacing: 0.02em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.5rem 2.75rem;
+  --gh-page-padding-lg: 3rem 3.25rem;
+  --gh-max-width: 680px;
+  --gh-rule-length: 55%;
+  --gh-p-spacing: 1em;
 }
 
 /* 10. Minimal Gray */
@@ -155,6 +284,14 @@
   --gh-code-bg: #f5f5f5; --gh-code-fg: #171717; --gh-code-border: #e5e5e5;
   --gh-hr: #e5e5e5; --gh-table-border: #e5e5e5; --gh-table-stripe: #f5f5f5;
   --gh-link: #404040;
+  --gh-line-height: 1.85;
+  --gh-letter-spacing: 0.005em;
+  --gh-page-padding: 1.5rem 1.75rem;
+  --gh-page-padding-md: 2rem 2.25rem;
+  --gh-page-padding-lg: 2.5rem 2.75rem;
+  --gh-max-width: 720px;
+  --gh-rule-length: 75%;
+  --gh-p-spacing: 0.9em;
 }
 
 /* 11. Zhihu Blue */
@@ -169,6 +306,14 @@
   --gh-link: #0084ff;
   --gh-font: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --gh-font-heading: 'Outfit', 'PingFang SC', sans-serif;
+  --gh-line-height: 1.85;
+  --gh-letter-spacing: 0.01em;
+  --gh-page-padding: 1.5rem 1.75rem;
+  --gh-page-padding-md: 2rem 2.25rem;
+  --gh-page-padding-lg: 2.5rem 2.75rem;
+  --gh-max-width: 720px;
+  --gh-rule-length: 80%;
+  --gh-p-spacing: 0.9em;
 }
 
 /* 12. Rose Pine */
@@ -181,6 +326,14 @@
   --gh-code-bg: #1f1d2e; --gh-code-fg: #f6c177; --gh-code-border: #26233a;
   --gh-hr: #26233a; --gh-table-border: #26233a; --gh-table-stripe: #1f1d2e;
   --gh-link: #c4a7e7;
+  --gh-line-height: 1.95;
+  --gh-letter-spacing: 0.02em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.5rem 2.75rem;
+  --gh-page-padding-lg: 3rem 3.25rem;
+  --gh-max-width: 680px;
+  --gh-rule-length: 55%;
+  --gh-p-spacing: 1em;
 }
 
 /* 13. Mint Fresh */
@@ -193,6 +346,14 @@
   --gh-code-bg: #dcfce7; --gh-code-fg: #15803d; --gh-code-border: #bbf7d0;
   --gh-hr: #bbf7d0; --gh-table-border: #bbf7d0; --gh-table-stripe: #f0fdf4;
   --gh-link: #16a34a;
+  --gh-line-height: 1.9;
+  --gh-letter-spacing: 0.02em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.25rem 2.5rem;
+  --gh-page-padding-lg: 2.5rem 3rem;
+  --gh-max-width: 700px;
+  --gh-rule-length: 65%;
+  --gh-p-spacing: 1em;
 }
 
 /* 14. Midnight Blue */
@@ -205,6 +366,14 @@
   --gh-code-bg: #1e293b; --gh-code-fg: #a5f3fc; --gh-code-border: #334155;
   --gh-hr: #334155; --gh-table-border: #334155; --gh-table-stripe: #1e293b;
   --gh-link: #60a5fa;
+  --gh-line-height: 1.95;
+  --gh-letter-spacing: 0.02em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.5rem 2.75rem;
+  --gh-page-padding-lg: 3rem 3.25rem;
+  --gh-max-width: 680px;
+  --gh-rule-length: 55%;
+  --gh-p-spacing: 1em;
 }
 
 /* 15. Monochrome */
@@ -217,6 +386,134 @@
   --gh-code-bg: #f5f5f5; --gh-code-fg: #000000; --gh-code-border: #000000;
   --gh-hr: #000000; --gh-table-border: #000000; --gh-table-stripe: #fafafa;
   --gh-link: #000000;
+  --gh-line-height: 1.85;
+  --gh-letter-spacing: 0;
+  --gh-page-padding: 1.5rem 1.75rem;
+  --gh-page-padding-md: 2rem 2.5rem;
+  --gh-page-padding-lg: 2.5rem 3rem;
+  --gh-max-width: 720px;
+  --gh-rule-length: 50%;
+  --gh-p-spacing: 0.9em;
+}
+
+/* ============================================================
+   NEW BREATHABLE THEMES (16–20)
+   ------------------------------------------------------------
+   These are tuned for reading comfort: airy line-height, generous
+   letter-spacing for CJK, large padding, and a rule-length that
+   pulls the eye to the center. None use pure dark backgrounds.
+   ============================================================ */
+
+/* 16. Tea Mist 茶雾 — warm cream, dusty rose */
+[data-theme="tea-mist"] {
+  --gh-bg: #f3ecdc;
+  --gh-fg: #3a2a1f;
+  --gh-accent: #b58070;
+  --gh-h1: #2a1c12; --gh-h2: #3a2a1f; --gh-h3: #5a3e2c; --gh-p: #3a2a1f;
+  --gh-quote-bg: #ece2cc; --gh-quote-border: #b58070; --gh-quote-fg: #6a4a36;
+  --gh-code-bg: #ece2cc; --gh-code-fg: #8a4a36; --gh-code-border: #d4c4a4;
+  --gh-hr: #d4c4a4; --gh-table-border: #d4c4a4; --gh-table-stripe: #ece2cc;
+  --gh-link: #a05a48;
+  --gh-line-height: 1.95;
+  --gh-letter-spacing: 0.03em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.5rem 3rem;
+  --gh-page-padding-lg: 3rem 3.5rem;
+  --gh-max-width: 660px;
+  --gh-rule-length: 50%;
+  --gh-rule-style: dashed;
+  --gh-rule-weight: 1px;
+  --gh-p-spacing: 1.1em;
+  --gh-heading-spacing: 1.9em;
+}
+
+/* 17. Rice Paper 米纸 — soft off-white, walnut */
+[data-theme="rice-paper"] {
+  --gh-bg: #faf6ec;
+  --gh-fg: #2c2823;
+  --gh-accent: #6b5d4a;
+  --gh-h1: #1c1813; --gh-h2: #2c2823; --gh-h3: #4a423a; --gh-p: #2c2823;
+  --gh-quote-bg: #f0ead8; --gh-quote-border: #8a7860; --gh-quote-fg: #5a4e3e;
+  --gh-code-bg: #f0ead8; --gh-code-fg: #6b5d4a; --gh-code-border: #ddd5c0;
+  --gh-hr: #ddd5c0; --gh-table-border: #ddd5c0; --gh-table-stripe: #f0ead8;
+  --gh-link: #6b5d4a;
+  --gh-line-height: 1.9;
+  --gh-letter-spacing: 0.02em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.25rem 2.5rem;
+  --gh-page-padding-lg: 2.5rem 3rem;
+  --gh-max-width: 700px;
+  --gh-rule-length: 65%;
+  --gh-p-spacing: 1em;
+  --gh-heading-spacing: 1.7em;
+}
+
+/* 18. Ink Wash 水墨 — soft gray, charcoal */
+[data-theme="ink-wash"] {
+  --gh-bg: #f4f2ee;
+  --gh-fg: #2a2826;
+  --gh-accent: #6b6b6b;
+  --gh-h1: #1a1816; --gh-h2: #2a2826; --gh-h3: #4a4844; --gh-p: #2a2826;
+  --gh-quote-bg: #eae8e2; --gh-quote-border: #8a8a8a; --gh-quote-fg: #5a5a5a;
+  --gh-code-bg: #eae8e2; --gh-code-fg: #3a3a3a; --gh-code-border: #d4d2cc;
+  --gh-hr: #d4d2cc; --gh-table-border: #d4d2cc; --gh-table-stripe: #eae8e2;
+  --gh-link: #4a4a4a;
+  --gh-line-height: 1.85;
+  --gh-letter-spacing: 0.015em;
+  --gh-page-padding: 1.5rem 1.75rem;
+  --gh-page-padding-md: 2rem 2.25rem;
+  --gh-page-padding-lg: 2.5rem 2.75rem;
+  --gh-max-width: 720px;
+  --gh-rule-length: 70%;
+  --gh-p-spacing: 0.9em;
+}
+
+/* 19. Soft Plum 软梅 — warm blush, muted plum */
+[data-theme="soft-plum"] {
+  --gh-bg: #f8efe8;
+  --gh-fg: #3d2a28;
+  --gh-accent: #8b5c5c;
+  --gh-h1: #2a1816; --gh-h2: #3d2a28; --gh-h3: #5a3e3c; --gh-p: #3d2a28;
+  --gh-quote-bg: #efe1d8; --gh-quote-border: #8b5c5c; --gh-quote-fg: #6a4442;
+  --gh-code-bg: #efe1d8; --gh-code-fg: #6a3838; --gh-code-border: #d8c4bc;
+  --gh-hr: #d8c4bc; --gh-table-border: #d8c4bc; --gh-table-stripe: #efe1d8;
+  --gh-link: #8b5c5c;
+  --gh-line-height: 1.95;
+  --gh-letter-spacing: 0.03em;
+  --gh-page-padding: 1.75rem 2rem;
+  --gh-page-padding-md: 2.5rem 2.75rem;
+  --gh-page-padding-lg: 2.75rem 3.25rem;
+  --gh-max-width: 680px;
+  --gh-rule-length: 60%;
+  --gh-rule-style: double;
+  --gh-rule-weight: 3px;
+  --gh-p-spacing: 1em;
+  --gh-heading-spacing: 1.8em;
+}
+
+/* 20. Cinnabar Manuscript 朱砂稿纸 — aged paper, deep ink, vermillion */
+[data-theme="cinnabar-manuscript"] {
+  --gh-bg: #f4ecd8;
+  --gh-fg: #1a1714;
+  --gh-accent: #c8392a;
+  --gh-h1: #1a1714; --gh-h2: #1a1714; --gh-h3: #3a2820; --gh-p: #1a1714;
+  --gh-quote-bg: #ece2c4; --gh-quote-border: #c8392a; --gh-quote-fg: #5a3e30;
+  --gh-code-bg: #ece2c4; --gh-code-fg: #8a2a1a; --gh-code-border: #d8c8a4;
+  --gh-hr: #d8c8a4; --gh-table-border: #d8c8a4; --gh-table-stripe: #ece2c4;
+  --gh-link: #8b1a1a;
+  --gh-font: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --gh-font-heading: 'Outfit', 'Noto Sans SC', 'PingFang SC', sans-serif;
+  --gh-line-height: 2.0;
+  --gh-letter-spacing: 0.04em;
+  --gh-page-padding: 2rem 2.25rem;
+  --gh-page-padding-md: 3rem 3.5rem;
+  --gh-page-padding-lg: 3.5rem 4rem;
+  --gh-max-width: 640px;
+  --gh-rule-length: 50%;
+  --gh-rule-style: solid;
+  --gh-rule-weight: 2px;
+  --gh-p-spacing: 1.2em;
+  --gh-heading-spacing: 2em;
 }
 
 /* ============================================================
@@ -249,6 +546,7 @@ body {
 
 /* ============================================================
    .prose-ghost — the styled Markdown article
+   Now theme-driven for color AND typography tokens.
    ============================================================ */
 
 .prose-ghost {
@@ -256,20 +554,33 @@ body {
   color: var(--gh-fg);
   font-family: var(--gh-font);
   font-size: 15px;
-  line-height: 1.75;
-  padding: 1.25rem;
-  border-radius: 8px;
+  line-height: var(--gh-line-height);
+  letter-spacing: var(--gh-letter-spacing);
+  padding: var(--gh-page-padding);
+  max-width: var(--gh-max-width);
+  margin: 0 auto;
+  border-radius: var(--gh-radius);
   word-wrap: break-word;
   overflow-wrap: break-word;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    padding 0.2s ease;
 }
 
 @media (min-width: 768px) {
-  .prose-ghost { padding: 1.5rem 1.75rem; border-radius: 10px; font-size: 15.5px; }
+  .prose-ghost {
+    padding: var(--gh-page-padding-md);
+    font-size: 15.5px;
+    border-radius: var(--gh-radius-lg);
+  }
 }
 
 @media (min-width: 1280px) {
-  .prose-ghost { padding: 2rem 2.5rem; font-size: 16px; }
+  .prose-ghost {
+    padding: var(--gh-page-padding-lg);
+    font-size: 16px;
+  }
 }
 
 .prose-ghost > *:first-child { margin-top: 0; }
@@ -284,7 +595,7 @@ body {
   font-family: var(--gh-font-heading);
   font-weight: 700;
   line-height: 1.3;
-  margin: 1.6em 0 0.6em;
+  margin: var(--gh-heading-spacing) 0 0.6em;
 }
 
 .prose-ghost h1 { font-size: 2em;    color: var(--gh-h1); }
@@ -292,7 +603,12 @@ body {
 .prose-ghost h3 { font-size: 1.2em;  color: var(--gh-h3); }
 .prose-ghost h4 { font-size: 1.05em; color: var(--gh-h3); }
 .prose-ghost h5 { font-size: 0.95em; color: var(--gh-h3); }
-.prose-ghost h6 { font-size: 0.85em; color: var(--gh-h3); text-transform: uppercase; letter-spacing: 0.05em; }
+.prose-ghost h6 {
+  font-size: 0.85em;
+  color: var(--gh-h3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
 
 .prose-ghost h2 {
   padding-bottom: 0.3em;
@@ -300,7 +616,7 @@ body {
 }
 
 .prose-ghost p {
-  margin: 0.8em 0;
+  margin: var(--gh-p-spacing) 0;
   color: var(--gh-p);
 }
 
@@ -315,17 +631,20 @@ body {
 }
 
 .prose-ghost strong { color: var(--gh-fg); font-weight: 700; }
-.prose-ghost em { font-style: italic; }
+.prose-ghost em {
+  font-style: italic;
+  letter-spacing: var(--gh-letter-spacing);
+}
 
 .prose-ghost blockquote {
-  margin: 1em 0;
-  padding: 0.6em 1em;
+  margin: 1.2em 0;
+  padding: 0.6em 1.2em;
   background: var(--gh-quote-bg);
   border-left: 3px solid var(--gh-quote-border);
   color: var(--gh-quote-fg);
   border-radius: 0 6px 6px 0;
 }
-.prose-ghost blockquote p { margin: 0.3em 0; }
+.prose-ghost blockquote p { margin: 0.4em 0; }
 
 .prose-ghost code {
   font-family: var(--gh-font-mono);
@@ -338,14 +657,14 @@ body {
 }
 
 .prose-ghost pre {
-  margin: 1em 0;
+  margin: 1.2em 0;
   padding: 1em 1.2em;
   background: var(--gh-code-bg);
   color: var(--gh-code-fg);
   border: 1px solid var(--gh-code-border);
   border-radius: 8px;
   overflow-x: auto;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 .prose-ghost pre code {
   background: transparent;
@@ -355,25 +674,28 @@ body {
   color: inherit;
 }
 
+/* HR — width, style, weight all theme-driven */
 .prose-ghost hr {
-  height: 1px;
-  background: var(--gh-hr);
+  width: var(--gh-rule-length);
+  height: 0;
   border: none;
-  margin: 2em 0;
+  border-top: var(--gh-rule-weight) var(--gh-rule-style) var(--gh-hr);
+  background: transparent;
+  margin: 2.2em auto;
 }
 
 .prose-ghost ul, .prose-ghost ol {
-  margin: 0.8em 0;
+  margin: var(--gh-p-spacing) 0;
   padding-left: 1.8em;
 }
 .prose-ghost li {
-  margin: 0.3em 0;
+  margin: 0.35em 0;
 }
 .prose-ghost li > p { margin: 0.3em 0; }
 
 .prose-ghost table {
   border-collapse: collapse;
-  margin: 1em 0;
+  margin: 1.2em 0;
   width: 100%;
   font-size: 0.92em;
   border: 1px solid var(--gh-table-border);
@@ -397,7 +719,7 @@ body {
   max-width: 100%;
   height: auto;
   border-radius: 6px;
-  margin: 1em 0;
+  margin: 1.2em 0;
 }
 
 .prose-ghost kbd {
@@ -419,7 +741,7 @@ body {
 }
 
 .prose-ghost details {
-  margin: 0.8em 0;
+  margin: 1em 0;
   padding: 0.5em 0.8em;
   background: var(--gh-quote-bg);
   border: 1px solid var(--gh-code-border);

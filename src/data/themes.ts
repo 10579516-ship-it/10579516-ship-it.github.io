@@ -100,6 +100,36 @@ export const themes: ThemeMeta[] = [
     author: 'Built-in',
     swatch: { bg: '#ffffff', fg: '#000000', accent: '#000000' },
   },
+  {
+    id: 'tea-mist',
+    name: 'Tea Mist 茶雾',
+    author: 'Built-in',
+    swatch: { bg: '#f3ecdc', fg: '#3a2a1f', accent: '#b58070' },
+  },
+  {
+    id: 'rice-paper',
+    name: 'Rice Paper 米纸',
+    author: 'Built-in',
+    swatch: { bg: '#faf6ec', fg: '#2c2823', accent: '#6b5d4a' },
+  },
+  {
+    id: 'ink-wash',
+    name: 'Ink Wash 水墨',
+    author: 'Built-in',
+    swatch: { bg: '#f4f2ee', fg: '#2a2826', accent: '#6b6b6b' },
+  },
+  {
+    id: 'soft-plum',
+    name: 'Soft Plum 软梅',
+    author: 'Built-in',
+    swatch: { bg: '#f8efe8', fg: '#3d2a28', accent: '#8b5c5c' },
+  },
+  {
+    id: 'cinnabar-manuscript',
+    name: 'Cinnabar Manuscript 朱砂稿纸',
+    author: 'Built-in',
+    swatch: { bg: '#f4ecd8', fg: '#1a1714', accent: '#c8392a' },
+  },
 ];
 
 export const defaultThemeId = themes[0]!.id;
