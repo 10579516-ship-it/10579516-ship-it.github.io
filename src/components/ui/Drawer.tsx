@@ -60,7 +60,7 @@ export function Drawer({ open, onClose, title, children, width = 'w-[480px] max-
             aria-modal="true"
             aria-label={title}
             className={cn(
-              'absolute top-0 h-full bg-white shadow-2xl flex flex-col',
+              'absolute top-0 h-full bg-[var(--paper,#F4ECD8)] shadow-2xl flex flex-col',
               side === 'right' ? 'right-0' : 'left-0',
               width,
             )}
@@ -70,13 +70,13 @@ export function Drawer({ open, onClose, title, children, width = 'w-[480px] max-
             transition={{ type: 'spring', stiffness: 360, damping: 36 }}
           >
             {title && (
-              <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-3.5">
-                <h2 className="text-base font-semibold text-zinc-900">{title}</h2>
+              <div className="flex items-center justify-between border-b border-[var(--paper-edge,#D9C8A8)] px-5 py-3.5">
+                <h2 className="text-base font-semibold text-[var(--ink,#1A1714)]">{title}</h2>
                 <button
                   type="button"
                   onClick={onClose}
                   aria-label="Close"
-                  className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                  className="rounded-md p-1 text-[var(--ink-faded,#7A6E5D)] hover:bg-[var(--paper-deep,#E8D9C4)] hover:text-[var(--ink,#1A1714)]"
                 >
                   <X className="h-4 w-4" />
                 </button>

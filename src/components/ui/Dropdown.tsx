@@ -79,7 +79,7 @@ export function Dropdown({
             transition={{ duration: 0.1 }}
             style={{ [align]: 0, marginTop: offset }}
             className={cn(
-              'absolute z-40 min-w-[180px] overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-xl',
+              'absolute z-40 min-w-[180px] overflow-hidden rounded-lg border border-[var(--paper-edge,#D9C8A8)] bg-[var(--paper,#F4ECD8)] shadow-xl',
               panelClassName,
             )}
           >

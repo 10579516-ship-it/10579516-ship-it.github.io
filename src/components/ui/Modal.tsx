@@ -56,7 +56,9 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-md' }:
             aria-modal="true"
             aria-label={title}
             className={cn(
-              'relative z-10 w-full overflow-hidden rounded-xl bg-white shadow-2xl',
+              'relative z-10 flex w-full flex-col overflow-hidden rounded-xl shadow-2xl',
+              'bg-[var(--paper,#F4ECD8)] text-[var(--ink,#1A1714)]',
+              'max-h-[85vh]',
               maxWidth,
             )}
             initial={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -65,19 +67,19 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-md' }:
             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
           >
             {title && (
-              <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-3.5">
-                <h2 className="text-base font-semibold text-zinc-900">{title}</h2>
+              <div className="flex shrink-0 items-center justify-between border-b border-[var(--paper-edge,#D9C8A8)] px-5 py-3.5">
+                <h2 className="text-base font-semibold tracking-tight">{title}</h2>
                 <button
                   type="button"
                   onClick={onClose}
                   aria-label="Close"
-                  className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                  className="rounded-md p-1 text-[var(--ink-faded,#7A6E5D)] hover:bg-[var(--paper-deep,#E8D9C4)] hover:text-[var(--ink,#1A1714)]"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
             )}
-            <div className="p-5">{children}</div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-5">{children}</div>
           </motion.div>
         </motion.div>
       )}

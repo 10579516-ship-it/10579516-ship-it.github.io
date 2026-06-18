@@ -38,7 +38,7 @@ export const PreviewPane = forwardRef<HTMLElement, PreviewPaneProps>(
             {content}
           </ReactMarkdown>
         ) : (
-          <p className="text-zinc-400 italic">Nothing to preview yet — start typing on the left.</p>
+          <p className="text-[var(--ink-faded,#7A6E5D)] opacity-80 italic">Nothing to preview yet — start typing on the left.</p>
         )}
       </article>
     );

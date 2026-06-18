@@ -520,6 +520,22 @@
    Base + Prose Styles
    ============================================================ */
 
+/* ============================================================
+   Page chrome tokens (used by the toolbar / chrome, NOT the
+   article — the article is themed via [data-theme]).
+   ============================================================ */
+:root {
+  --paper:        #F4ECD8;
+  --paper-deep:   #E8D9C4;
+  --paper-edge:   #D9C8A8;
+  --paper-grid:   #D8B89E;
+  --ink:          #1A1714;
+  --ink-faded:    #7A6E5D;
+  --cinnabar:     #C8392A;
+  --cinnabar-deep:#8B1A1A;
+  --seal:         #B83227;
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
@@ -527,9 +543,22 @@ html, body, #root {
 }
 
 body {
-  background: #f4f4f5;
-  color: #18181b;
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Manuscript paper background — matches the landing page chrome.
+     Subtle SVG noise gives it the feel of real 稿纸 without overpowering. */
+  background-color: var(--paper);
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10 0 0 0 0 0.09 0 0 0 0 0.07 0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 31px,
+      rgba(216, 184, 158, 0.16) 31px,
+      rgba(216, 184, 158, 0.16) 32px
+    );
+  background-size: 240px 240px, auto;
+  background-attachment: fixed, fixed;
+  color: var(--ink);
+  font-family: 'Inter', 'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -538,11 +567,14 @@ body {
   box-sizing: border-box;
 }
 
-/* Scrollbar — minimal */
+/* Scrollbar — minimal, warm-tinted */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 5px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.24); }
+::-webkit-scrollbar-thumb {
+  background: rgba(122, 110, 93, 0.32);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(122, 110, 93, 0.56); }
 
 /* ============================================================
    .prose-ghost — the styled Markdown article
@@ -611,8 +643,19 @@ body {
 }
 
 .prose-ghost h2 {
-  padding-bottom: 0.3em;
-  border-bottom: 1px solid var(--gh-hr);
+  position: relative;
+  padding-bottom: 0.6em;
+  margin-bottom: 0.7em;
+}
+.prose-ghost h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--gh-rule-length);
+  height: 0;
+  border-top: var(--gh-rule-weight) var(--gh-rule-style) var(--gh-hr);
+  transition: width 0.25s ease;
 }
 
 .prose-ghost p {

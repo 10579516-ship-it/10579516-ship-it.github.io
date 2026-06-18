@@ -20,13 +20,14 @@ export function SettingsMenu({ onOpenSettings, onOpenGuide, onReset }: SettingsM
       align="right"
       trigger={
         <span
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-700 hover:bg-zinc-100"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-[var(--paper-deep,#E8D9C4)]"
+          style={{ color: 'var(--ink,#1A1714)' }}
           title="Settings menu"
         >
           <SettingsIcon className="h-[18px] w-[18px]" />
         </span>
       }
-      panelClassName="min-w-[220px]"
+      panelClassName="min-w-[240px]"
     >
       {(close) => (
         <div className="py-1">
@@ -40,13 +41,13 @@ export function SettingsMenu({ onOpenSettings, onOpenGuide, onReset }: SettingsM
           />
           <MenuItem
             icon={<BookOpen className="h-4 w-4" />}
-            label="Markdown guide"
+            label="Markdown 指南 / Guide"
             onClick={() => {
               close();
               onOpenGuide();
             }}
           />
-          <div className="my-1 h-px bg-zinc-100" />
+          <div className="my-1 h-px" style={{ background: 'var(--paper-edge,#D9C8A8)' }} />
           <MenuItem
             icon={<RotateCcw className="h-4 w-4" />}
             label="Reset to welcome content"
@@ -62,7 +63,10 @@ export function SettingsMenu({ onOpenSettings, onOpenGuide, onReset }: SettingsM
               }
             }}
           />
-          <div className="px-3 py-2 text-[10px] leading-relaxed text-zinc-400">
+          <div
+            className="px-3 py-2 text-[10px] leading-relaxed"
+            style={{ color: 'var(--ink-faded,#7A6E5D)' }}
+          >
             {initialContent.length} chars in welcome doc
           </div>
         </div>
@@ -86,12 +90,20 @@ function MenuItem({
     <button
       type="button"
       onClick={onClick}
-      className={
-        'flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-zinc-50 ' +
-        (danger ? 'text-rose-600 hover:bg-rose-50' : 'text-zinc-700')
-      }
+      className="flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors"
+      style={{
+        color: danger ? 'var(--cinnabar-deep,#8B1A1A)' : 'var(--ink,#1A1714)',
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = danger
+          ? 'rgba(200,57,42,0.08)'
+          : 'var(--paper-deep,#E8D9C4)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+      }}
     >
-      <span className="text-zinc-400">{icon}</span>
+      <span style={{ color: 'var(--ink-faded,#7A6E5D)' }}>{icon}</span>
       <span>{label}</span>
     </button>
   );

@@ -134,11 +134,11 @@ export function ApiConfigModal({ open, onClose, onSaved }: ApiConfigModalProps) 
 
         {/* Provider */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-800">Provider</label>
+          <label className="mb-1 block text-sm font-medium text-[var(--ink,#1A1714)]">Provider</label>
           <select
             value={providerId}
             onChange={(e) => handleProviderChange(e.target.value)}
-            className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-900"
+            className="w-full rounded-md border border-[var(--paper-edge,#D9C8A8)] bg-white px-3 py-2 text-sm outline-none focus:border-[var(--ink,#1A1714)]"
           >
             {(Object.keys(grouped) as ProviderRegion[]).flatMap((region) => {
               const items = grouped[region];
@@ -156,28 +156,28 @@ export function ApiConfigModal({ open, onClose, onSaved }: ApiConfigModalProps) 
             <option value={customProvider.id}>自定义 / Custom</option>
           </select>
           {provider.note && (
-            <p className="mt-1 text-xs text-zinc-500">{provider.note}</p>
+            <p className="mt-1 text-xs text-[var(--ink-faded,#7A6E5D)]">{provider.note}</p>
           )}
         </div>
 
         {/* API key */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-800">API Key</label>
+          <label className="mb-1 block text-sm font-medium text-[var(--ink,#1A1714)]">API Key</label>
           <div className="relative">
-            <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ink-faded,#7A6E5D)] opacity-80" />
             <input
               type={showKey ? 'text' : 'password'}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder={provider.keyUrl ? 'sk-...' : 'API key'}
               autoComplete="off"
-              className="w-full rounded-md border border-zinc-200 bg-white py-2 pl-9 pr-10 font-mono text-sm outline-none focus:border-zinc-900"
+              className="w-full rounded-md border border-[var(--paper-edge,#D9C8A8)] bg-white py-2 pl-9 pr-10 font-mono text-sm outline-none focus:border-[var(--ink,#1A1714)]"
             />
             <button
               type="button"
               onClick={() => setShowKey((s) => !s)}
               aria-label={showKey ? 'Hide key' : 'Show key'}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-500 hover:bg-zinc-100"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-[var(--ink-faded,#7A6E5D)] hover:bg-[var(--paper-deep,#E8D9C4)]"
             >
               {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -187,14 +187,14 @@ export function ApiConfigModal({ open, onClose, onSaved }: ApiConfigModalProps) 
 
         {/* Endpoint */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-800">Endpoint</label>
+          <label className="mb-1 block text-sm font-medium text-[var(--ink,#1A1714)]">Endpoint</label>
           <input
             type="url"
             value={endpoint}
             onChange={(e) => setEndpoint(e.target.value)}
             placeholder={provider.endpoint}
             list={endpointDatalistId}
-            className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 font-mono text-sm outline-none focus:border-zinc-900"
+            className="w-full rounded-md border border-[var(--paper-edge,#D9C8A8)] bg-white px-3 py-2 font-mono text-sm outline-none focus:border-[var(--ink,#1A1714)]"
           />
           <datalist id={endpointDatalistId}>
             {providers.map((p) => (
@@ -202,7 +202,7 @@ export function ApiConfigModal({ open, onClose, onSaved }: ApiConfigModalProps) 
             ))}
           </datalist>
           {endpointError && <p className="mt-1 text-xs text-rose-600">{endpointError}</p>}
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-[var(--ink-faded,#7A6E5D)]">
             The browser POSTs to <code className="font-mono">{endpoint || '…'}/chat/completions</code>.
             Your provider must allow CORS for browser-origin requests.
           </p>
@@ -210,14 +210,14 @@ export function ApiConfigModal({ open, onClose, onSaved }: ApiConfigModalProps) 
 
         {/* Model */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-800">Model</label>
+          <label className="mb-1 block text-sm font-medium text-[var(--ink,#1A1714)]">Model</label>
           <input
             type="text"
             value={model}
             onChange={(e) => setModel(e.target.value)}
             placeholder={provider.defaultModel || 'model-name'}
             list={modelDatalistId}
-            className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 font-mono text-sm outline-none focus:border-zinc-900"
+            className="w-full rounded-md border border-[var(--paper-edge,#D9C8A8)] bg-white px-3 py-2 font-mono text-sm outline-none focus:border-[var(--ink,#1A1714)]"
           />
           <datalist id={modelDatalistId}>
             {provider.models.map((m) => (
@@ -234,8 +234,8 @@ export function ApiConfigModal({ open, onClose, onSaved }: ApiConfigModalProps) 
                   className={cn(
                     'rounded-full border px-2 py-0.5 text-[11px] transition-colors',
                     model === m
-                      ? 'border-zinc-900 bg-zinc-900 text-white'
-                      : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:text-zinc-900',
+                      ? 'border-[var(--ink,#1A1714)] bg-[var(--ink,#1A1714)] text-white'
+                      : 'border-[var(--paper-edge,#D9C8A8)] bg-white text-[var(--ink-faded,#7A6E5D)] hover:border-[var(--ink-faded,#7A6E5D)] hover:text-[var(--ink,#1A1714)]',
                   )}
                 >
                   {m}
@@ -252,7 +252,7 @@ export function ApiConfigModal({ open, onClose, onSaved }: ApiConfigModalProps) 
               href={provider.keyUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-900"
+              className="inline-flex items-center gap-1 text-xs text-[var(--ink-faded,#7A6E5D)] hover:text-[var(--ink,#1A1714)]"
             >
               <ExternalLink className="h-3 w-3" />
               获取 {provider.name} 的 Key
@@ -265,7 +265,7 @@ export function ApiConfigModal({ open, onClose, onSaved }: ApiConfigModalProps) 
               <button
                 type="button"
                 onClick={handleClear}
-                className="rounded-md px-3 py-1.5 text-sm text-zinc-500 hover:text-rose-600"
+                className="rounded-md px-3 py-1.5 text-sm text-[var(--ink-faded,#7A6E5D)] hover:text-[var(--cinnabar-deep,#8B1A1A)]"
               >
                 Forget key
               </button>
@@ -273,7 +273,7 @@ export function ApiConfigModal({ open, onClose, onSaved }: ApiConfigModalProps) 
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+              className="rounded-md px-3 py-1.5 text-sm text-[var(--ink,#1A1714)] hover:bg-[var(--paper-deep,#E8D9C4)]"
             >
               Cancel
             </button>
@@ -281,7 +281,7 @@ export function ApiConfigModal({ open, onClose, onSaved }: ApiConfigModalProps) 
               type="button"
               onClick={handleSave}
               disabled={!canSave}
-              className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+              className="rounded-md bg-[var(--ink,#1A1714)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-80 disabled:opacity-50"
             >
               Save
             </button>

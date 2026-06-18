@@ -32,13 +32,22 @@ export function EditorPane({ value, onChange, placeholder }: EditorPaneProps) {
         placeholder={placeholder}
         spellCheck={false}
         className={cn(
-          'min-h-0 flex-1 resize-none bg-white p-4 font-mono text-sm leading-relaxed text-zinc-800 outline-none',
-          'placeholder:text-zinc-400',
+          'min-h-0 flex-1 resize-none p-4 font-mono text-sm leading-relaxed outline-none',
+          'bg-[var(--paper,#F4ECD8)] text-[var(--ink,#1A1714)]',
+          'placeholder:text-[var(--ink-faded,#7A6E5D)] placeholder:opacity-60',
           'md:p-6',
         )}
+        style={{ letterSpacing: '0.01em' }}
       />
-      <div className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50 px-4 py-1.5 text-xs text-zinc-500 md:px-6">
-        <span>Markdown</span>
+      <div
+        className="flex shrink-0 items-center justify-between border-t px-4 py-1.5 text-xs md:px-6"
+        style={{
+          background: 'var(--paper-deep,#E8D9C4)',
+          borderColor: 'var(--paper-edge,#D9C8A8)',
+          color: 'var(--ink-faded,#7A6E5D)',
+        }}
+      >
+        <span className="font-mono uppercase tracking-[0.14em]">Markdown</span>
         <span>
           {counts.chars} 字符 · {counts.words} 词
         </span>

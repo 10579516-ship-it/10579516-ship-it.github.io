@@ -9,14 +9,16 @@ import {
   Loader2,
 } from 'lucide-react';
 import { IconButton } from '@/components/ui/IconButton';
+import { PublishMenu } from '@/components/Settings/PublishMenu';
 import type { ThemeMeta } from '@/data/types';
+import type { PlatformId } from '@/utils/wechatFormat';
 
 interface ToolbarProps {
   theme: ThemeMeta;
   isAiLoading: boolean;
   isLocalLoading: boolean;
   onCopyMd: () => void;
-  onCopyWechat: () => void;
+  onCopyToPlatform: (id: PlatformId) => void;
   onExportPng: () => void;
   onAiConvert: () => void;
   onLocalFormat: () => void;
@@ -37,7 +39,7 @@ export function Toolbar({
   isAiLoading,
   isLocalLoading,
   onCopyMd,
-  onCopyWechat,
+  onCopyToPlatform,
   onExportPng,
   onAiConvert,
   onLocalFormat,
@@ -47,51 +49,57 @@ export function Toolbar({
   rightSlot,
 }: ToolbarProps) {
   return (
-    <div className="flex shrink-0 items-center justify-between gap-2 overflow-x-auto border-b border-zinc-200 bg-white px-3 py-1.5 lg:px-4">
+    <div className="flex shrink-0 items-center justify-between gap-2 overflow-x-auto border-b px-3 py-1.5 lg:px-4"
+      style={{
+        background: 'var(--paper,#F4ECD8)',
+        borderColor: 'var(--paper-edge,#D9C8A8)',
+        color: 'var(--ink,#1A1714)',
+      }}
+    >
       {/* Left: theme indicator + guide. shrink-0 so it never compresses
           when the center group is wide. */}
       <div className="flex shrink-0 items-center gap-1">
         <button
           type="button"
           onClick={onOpenThemePicker}
-          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
+          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium transition-colors hover:bg-[var(--paper-deep,#E8D9C4)]"
+          style={{ color: 'var(--ink,#1A1714)' }}
           title="Change theme"
         >
-          <span className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-sm border border-zinc-200">
+          <span
+            className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-sm border"
+            style={{ borderColor: 'var(--paper-edge,#D9C8A8)' }}
+          >
             <span
               className="block h-2.5 w-2.5 rounded-full"
               style={{ background: theme.swatch.accent }}
             />
           </span>
-          <span className="hidden sm:inline">{theme.name}</span>
+          <span className="hidden sm:inline" style={{ fontFamily: "'Noto Serif SC', serif" }}>
+            {theme.name}
+          </span>
         </button>
         <IconButton
           icon={<BookOpen className="h-[18px] w-[18px]" />}
-          tooltip="Markdown Guide"
+          tooltip="Markdown 指南 / Markdown Guide"
           onClick={onOpenGuide}
         />
       </div>
 
-      {/* Center: copy / export / format / import. shrink-0 so the buttons
-          keep their natural size and the toolbar can scroll horizontally
-          on narrow viewports instead of clipping them. */}
+      {/* Center: copy / publish / export / format / import. */}
       <div className="flex shrink-0 items-center gap-1">
         <IconButton
           icon={<Copy className="h-[18px] w-[18px]" />}
           tooltip="Copy as Markdown"
           onClick={onCopyMd}
         />
-        <IconButton
-          icon={<WechatIcon className="h-[18px] w-[18px]" />}
-          tooltip="复制到微信公众号（带样式粘贴）"
-          onClick={onCopyWechat}
-        />
+        <PublishMenu onCopyToPlatform={onCopyToPlatform} />
         <IconButton
           icon={<ImageIcon className="h-[18px] w-[18px]" />}
           tooltip="Export PNG"
           onClick={onExportPng}
         />
-        <div className="mx-1 h-5 w-px bg-zinc-200" />
+        <div className="mx-1 h-5 w-px" style={{ background: 'var(--paper-edge,#D9C8A8)' }} />
         <IconButton
           icon={<Wand2 className="h-[18px] w-[18px]" />}
           tooltip="Local typographer — free, offline"
@@ -100,7 +108,7 @@ export function Toolbar({
         />
         <IconButton
           icon={isAiLoading ? <Loader2 className="h-[18px] w-[18px]" /> : <Sparkles className="h-[18px] w-[18px]" />}
-          label={isAiLoading ? 'Cancel' : undefined}
+          label={isAiLoading ? '取消' : undefined}
           tooltip={isAiLoading ? 'Cancel AI typographer' : 'AI typographer (uses your API key)'}
           onClick={onAiConvert}
           loading={isAiLoading}
@@ -115,28 +123,5 @@ export function Toolbar({
       {/* Right: caller-provided slot (gear menu) */}
       <div className="flex shrink-0 items-center gap-1">{rightSlot}</div>
     </div>
-  );
-}
-
-/**
- * WeChat icon — lucide-react doesn't ship a WeChat glyph, so we use a
- * small inline SVG. Two overlapping speech bubbles, green-tinted.
- */
-function WechatIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-      <circle cx="9" cy="11" r="0.5" fill="currentColor" />
-      <circle cx="13" cy="11" r="0.5" fill="currentColor" />
-    </svg>
   );
 }

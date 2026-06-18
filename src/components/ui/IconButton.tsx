@@ -40,14 +40,19 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         disabled={disabled || loading}
         className={cn(
           'relative inline-flex items-center justify-center gap-1.5 rounded-md transition-colors',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cinnabar,#C8392A)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--paper,#F4ECD8)]',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           active
-            ? 'bg-zinc-900 text-white hover:bg-zinc-800'
-            : 'text-zinc-700 hover:bg-zinc-100',
+            ? 'text-[var(--paper,#F4ECD8)]'
+            : 'text-[var(--ink,#1A1714)] hover:bg-[var(--paper-deep,#E8D9C4)]',
           label ? 'px-2.5' : dim,
           className,
         )}
+        style={
+          active
+            ? { background: 'var(--ink,#1A1714)' }
+            : undefined
+        }
         {...rest}
       >
         {loading ? (

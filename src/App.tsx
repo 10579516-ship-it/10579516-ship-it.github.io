@@ -23,7 +23,13 @@ import { initialContent } from '@/data/initialContent';
 import { formatTextWithLocalRules } from '@/ai/localTypographer';
 import { importDocx, WordImportError } from '@/ai/wordImport';
 import { copyMarkdown, exportNodeAsPng } from '@/utils/export';
-import { copyMarkdownAsWechat, readThemeFromElement, DEFAULT_WECHAT_THEME } from '@/utils/wechatFormat';
+import {
+  copyMarkdownAsPlatform,
+  readThemeFromElement,
+  DEFAULT_PLATFORM_THEME,
+  PLATFORM_CONFIGS,
+  type PlatformId,
+} from '@/utils/wechatFormat';
 import { cn } from '@/utils/cn';
 import type { ApiConfig } from '@/data/types';
 
@@ -126,19 +132,23 @@ export default function App() {
     }
   }, [content, pushToast]);
 
-  const handleCopyWechat = useCallback(async () => {
-    // Read the active theme's colors from the live preview DOM so the
-    // pasted result matches what the user sees in the editor.
-    const theme = previewRef.current
-      ? readThemeFromElement(previewRef.current)
-      : DEFAULT_WECHAT_THEME;
-    try {
-      await copyMarkdownAsWechat(content, theme);
-      pushToast('success', '已复制 — 粘贴到公众号编辑器即可看到当前主题配色。');
-    } catch {
-      pushToast('error', '复制失败 — 浏览器可能拒绝了剪贴板权限。');
-    }
-  }, [content, pushToast]);
+  const handleCopyToPlatform = useCallback(
+    async (platformId: PlatformId) => {
+      // Read the active theme's colors + typography tokens from the live
+      // preview DOM so the pasted result matches what the user sees.
+      const theme = previewRef.current
+        ? readThemeFromElement(previewRef.current)
+        : DEFAULT_PLATFORM_THEME;
+      const platform = PLATFORM_CONFIGS[platformId];
+      try {
+        await copyMarkdownAsPlatform(platformId, content, theme);
+        pushToast('success', `已复制到「${platform.label}」 — 粘贴到编辑器即可看到当前主题样式。`);
+      } catch {
+        pushToast('error', `复制到「${platform.label}」失败 — 浏览器可能拒绝了剪贴板权限。`);
+      }
+    },
+    [content, pushToast],
+  );
 
   const handleExportPng = useCallback(async () => {
     const node = previewRef.current;
@@ -195,7 +205,7 @@ export default function App() {
         isAiLoading={ai.status === 'running'}
         isLocalLoading={isLocalLoading}
         onCopyMd={handleCopyMd}
-        onCopyWechat={handleCopyWechat}
+        onCopyToPlatform={handleCopyToPlatform}
         onExportPng={handleExportPng}
         onAiConvert={handleAiConvert}
         onLocalFormat={handleLocalFormat}
@@ -283,7 +293,7 @@ export default function App() {
                 'pointer-events-auto inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm shadow-lg ring-1',
                 t.kind === 'success' && 'bg-emerald-50 text-emerald-900 ring-emerald-200',
                 t.kind === 'error' && 'bg-rose-50 text-rose-900 ring-rose-200',
-                t.kind === 'info' && 'bg-zinc-50 text-zinc-900 ring-zinc-200',
+                t.kind === 'info' && 'bg-[var(--paper-deep,#E8D9C4)] text-[var(--ink,#1A1714)] ring-[var(--paper-edge,#D9C8A8)]',
               )}
             >
               {t.kind === 'success' && <CheckCircle2 className="h-4 w-4" />}
