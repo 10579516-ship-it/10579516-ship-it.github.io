@@ -66,10 +66,15 @@ export function SplitLayout({ left, right }: SplitLayoutProps) {
         </div>
         {/* Right: preview — full column, fixed height (= grid row), and
             `overflow-y-auto` so long articles scroll *inside* this column
-            instead of extending the page. PreviewPane fills 100% of this. */}
+            instead of extending the page. PreviewPane fills 100% of this.
+
+            The cell bg matches the article bg (--paper / --gh-bg) so the
+            page reads as one continuous surface; the article's theme-
+            controlled padding provides internal breathing room, so the
+            cell's own padding stays minimal. */}
         <div
           className={cn(
-            'min-h-0 min-w-0 h-full overflow-y-auto bg-[var(--paper-deep,#E8D9C4)] p-2 md:p-4',
+            'min-h-0 min-w-0 h-full overflow-y-auto bg-[var(--paper,#F4ECD8)] p-0 md:p-2',
             tab === 'preview' ? 'block' : 'hidden',
             'md:block',
           )}
