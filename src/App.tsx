@@ -199,7 +199,7 @@ export default function App() {
 
   /* ---------------- render ---------------- */
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" data-theme={themeId}>
       <Toolbar
         theme={theme}
         isAiLoading={ai.status === 'running'}
@@ -224,7 +224,7 @@ export default function App() {
       <div className="min-h-0 flex-1">
         <SplitLayout
           left={<EditorPane value={content} onChange={setContent} />}
-          right={<PreviewPane ref={previewRef} content={content} themeId={themeId} />}
+          right={<PreviewPane ref={previewRef} content={content} />}
         />
       </div>
 

@@ -61,6 +61,7 @@
   --gh-rule-length:     60%;
   --gh-rule-style:      solid;
   --gh-rule-weight:     1px;
+  --gh-h2-rule-line:    none;
   --gh-p-spacing:       0.9em;
   --gh-heading-spacing: 1.6em;
   --gh-radius:          8px;
@@ -423,6 +424,7 @@
   --gh-rule-length: 50%;
   --gh-rule-style: dashed;
   --gh-rule-weight: 1px;
+  --gh-h2-rule-line: underline;
   --gh-p-spacing: 1.1em;
   --gh-heading-spacing: 1.9em;
 }
@@ -487,6 +489,7 @@
   --gh-rule-length: 60%;
   --gh-rule-style: double;
   --gh-rule-weight: 3px;
+  --gh-h2-rule-line: underline;
   --gh-p-spacing: 1em;
   --gh-heading-spacing: 1.8em;
 }
@@ -512,6 +515,7 @@
   --gh-rule-length: 50%;
   --gh-rule-style: solid;
   --gh-rule-weight: 2px;
+  --gh-h2-rule-line: underline;
   --gh-p-spacing: 1.2em;
   --gh-heading-spacing: 2em;
 }
@@ -523,15 +527,20 @@
 /* ============================================================
    Page chrome tokens (used by the toolbar / chrome, NOT the
    article — the article is themed via [data-theme]).
+
+   Chrome tokens fall through to the active article theme tokens
+   so the whole page follows the chosen theme. The hard-coded
+   values after each comma are the *fallback* used when no
+   [data-theme] is in scope (e.g. before the React tree mounts).
    ============================================================ */
 :root {
-  --paper:        #F4ECD8;
-  --paper-deep:   #E8D9C4;
-  --paper-edge:   #D9C8A8;
+  --paper:        var(--gh-bg,    #F4ECD8);
+  --paper-deep:   color-mix(in srgb, var(--gh-bg,    #F4ECD8) 88%, var(--gh-fg, #1A1714));
+  --paper-edge:   color-mix(in srgb, var(--gh-bg,    #F4ECD8) 78%, var(--gh-fg, #1A1714));
   --paper-grid:   #D8B89E;
-  --ink:          #1A1714;
-  --ink-faded:    #7A6E5D;
-  --cinnabar:     #C8392A;
+  --ink:          var(--gh-fg,    #1A1714);
+  --ink-faded:    color-mix(in srgb, var(--gh-fg,    #1A1714) 55%, transparent);
+  --cinnabar:     var(--gh-accent,#C8392A);
   --cinnabar-deep:#8B1A1A;
   --seal:         #B83227;
 }
@@ -543,17 +552,20 @@ html, body, #root {
 }
 
 body {
-  /* Manuscript paper background — matches the landing page chrome.
-     Subtle SVG noise gives it the feel of real 稿纸 without overpowering. */
+  /* Background tracks the active theme:
+     - base color = theme's --gh-bg (via --paper)
+     - ruled-line overlay = theme's --ink at 8% alpha (theme-aware)
+     - SVG noise dropped — alpha 0 — to avoid bright streaks on
+       dark themes. */
   background-color: var(--paper);
   background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10 0 0 0 0 0.09 0 0 0 0 0.07 0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10 0 0 0 0 0.09 0 0 0 0 0.07 0 0 0 0 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
     repeating-linear-gradient(
       0deg,
       transparent 0,
       transparent 31px,
-      rgba(216, 184, 158, 0.16) 31px,
-      rgba(216, 184, 158, 0.16) 32px
+      color-mix(in srgb, var(--ink, #1A1714) 8%, transparent) 31px,
+      color-mix(in srgb, var(--ink, #1A1714) 8%, transparent) 32px
     );
   background-size: 240px 240px, auto;
   background-attachment: fixed, fixed;
@@ -643,19 +655,15 @@ body {
 }
 
 .prose-ghost h2 {
-  position: relative;
-  padding-bottom: 0.6em;
+  /* Default: no underline. Themes that want one set
+     `--gh-h2-rule-line: underline`. The underline follows the
+     heading text via `text-decoration` (per-line for multi-line
+     headings) and inherits the theme's --gh-rule-style / weight / hr. */
+  text-decoration: var(--gh-h2-rule-line, none) var(--gh-rule-style, solid);
+  text-decoration-color: var(--gh-hr);
+  text-decoration-thickness: var(--gh-rule-weight, 1px);
+  text-underline-offset: 0.32em;
   margin-bottom: 0.7em;
-}
-.prose-ghost h2::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: var(--gh-rule-length);
-  height: 0;
-  border-top: var(--gh-rule-weight) var(--gh-rule-style) var(--gh-hr);
-  transition: width 0.25s ease;
 }
 
 .prose-ghost p {

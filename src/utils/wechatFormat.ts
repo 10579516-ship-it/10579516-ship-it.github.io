@@ -43,6 +43,8 @@ export interface PlatformTheme {
   ruleLength?: string;
   ruleStyle?: string;
   ruleWeight?: string;
+  /** Whether the active theme has an H2 underline. */
+  h2RuleLine?: 'none' | 'underline';
 }
 
 /** Fallback theme if the preview element isn't mounted yet. */
@@ -65,6 +67,7 @@ export const DEFAULT_PLATFORM_THEME: PlatformTheme = {
   ruleLength: '60%',
   ruleStyle: 'solid',
   ruleWeight: '1px',
+  h2RuleLine: 'underline',
 };
 
 /**
@@ -95,6 +98,7 @@ export function readThemeFromElement(el: HTMLElement): PlatformTheme {
     ruleLength: v('--gh-rule-length', DEFAULT_PLATFORM_THEME.ruleLength!),
     ruleStyle: v('--gh-rule-style', DEFAULT_PLATFORM_THEME.ruleStyle!),
     ruleWeight: v('--gh-rule-weight', DEFAULT_PLATFORM_THEME.ruleWeight!),
+    h2RuleLine: (v('--gh-h2-rule-line', DEFAULT_PLATFORM_THEME.h2RuleLine!) as 'none' | 'underline'),
   };
 }
 
@@ -244,13 +248,6 @@ const el = (
   };
 
 export function makePlatformComponents(theme: PlatformTheme, platform: PlatformConfig) {
-  // Compose the H2 underline from the active theme tokens (length,
-  // style, weight, color) — exactly like the live preview's ::after rule.
-  const h2Border =
-    `${platform.useThemeHrUnderline ? theme.ruleWeight || '1px' : '1px'} ` +
-    `${platform.useThemeHrUnderline ? theme.ruleStyle || 'solid' : platform.hrStyle} ` +
-    `${theme.hr}`;
-
   // HR style: width comes from theme rule-length (e.g. 50%) so the divider
   // length visually matches the preview's <hr>; vertical style stays on
   // platform config.
@@ -275,11 +272,16 @@ export function makePlatformComponents(theme: PlatformTheme, platform: PlatformC
       color: theme.h2,
       fontFamily: theme.fontFamily,
       lineHeight: '1.3',
-      paddingBottom: '0.3em',
-      // Note: pasted HTML doesn't honor width: var(); render as full-width
-      // border here so it always reads. The COLOR + WEIGHT + STYLE still
-      // come from the theme.
-      borderBottom: h2Border,
+      // H2 underline uses `text-decoration` so it follows the heading
+      // text length per-line. When the live theme has opted out, we
+      // emit `text-decoration: none`. Style + thickness + color come
+      // from the theme tokens.
+      textDecoration:
+        theme.h2RuleLine === 'underline'
+          ? `${theme.ruleStyle || 'solid'} ${theme.hr}`
+          : 'none',
+      textDecorationThickness: theme.ruleWeight || '1px',
+      textUnderlineOffset: '0.32em',
     }),
     h3: el('h3', {
       fontSize: platform.h3Size,

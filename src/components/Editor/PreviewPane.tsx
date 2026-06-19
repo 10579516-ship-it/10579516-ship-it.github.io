@@ -5,29 +5,24 @@ import { cn } from '@/utils/cn';
 
 interface PreviewPaneProps {
   content: string;
-  themeId: string;
 }
 
 /**
  * The live Markdown preview.
  *
- * Theming works via a `data-theme` attribute on the root `<article>`.
- * The actual color application happens in `src/index.css`:
- *   .prose-ghost { background: var(--gh-bg); color: var(--gh-fg); ... }
- *   [data-theme="dracula"] { --gh-bg: #...; ... }
+ * Theming works via the `data-theme` attribute on the React root
+ * `<div>` (in App.tsx). CSS custom properties cascade down to every
+ * chrome element AND the article, so switching themes paints the
+ * whole page in one pass.
  *
- * This means switching themes is a single attribute change — no React
- * reconciliation of per-element styles, no remount, no flicker.
- *
- * The `forwardRef` exposes the root element so the parent can use it
- * as the source for PNG export (`html-to-image`).
+ * The `forwardRef` exposes the article element so the parent can use
+ * it as the source for PNG export (`html-to-image`).
  */
 export const PreviewPane = forwardRef<HTMLElement, PreviewPaneProps>(
-  function PreviewPane({ content, themeId }, ref) {
+  function PreviewPane({ content }, ref) {
     return (
       <article
         ref={ref as React.Ref<HTMLElement>}
-        data-theme={themeId}
         className={cn('prose-ghost h-full w-full')}
       >
         {content.trim() ? (

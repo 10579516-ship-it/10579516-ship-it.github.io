@@ -9,9 +9,11 @@ import {
   Loader2,
 } from 'lucide-react';
 import { IconButton } from '@/components/ui/IconButton';
-import { PublishMenu } from '@/components/Settings/PublishMenu';
+import { PublishGlyph, PLATFORM_TINTS } from '@/components/Editor/PublishGlyph';
 import type { ThemeMeta } from '@/data/types';
-import type { PlatformId } from '@/utils/wechatFormat';
+import { PLATFORM_CONFIGS, type PlatformId } from '@/utils/wechatFormat';
+
+const PLATFORMS: PlatformId[] = ['wechat', 'xiaohongshu', 'zhihu', 'toutiao'];
 
 interface ToolbarProps {
   theme: ThemeMeta;
@@ -93,7 +95,46 @@ export function Toolbar({
           tooltip="Copy as Markdown"
           onClick={onCopyMd}
         />
-        <PublishMenu onCopyToPlatform={onCopyToPlatform} />
+        <div className="mx-1 h-5 w-px" style={{ background: 'var(--paper-edge,#D9C8A8)' }} />
+        {PLATFORMS.map((id) => {
+          const brand = PLATFORM_TINTS[id].background;
+          const platform = PLATFORM_CONFIGS[id];
+          return (
+            <span
+              key={id}
+              className="group relative inline-block"
+              style={{ ['--brand' as string]: brand }}
+            >
+              <IconButton
+                icon={
+                  <span
+                    className="inline-flex items-center justify-center transition-colors"
+                    style={{ color: 'var(--ink,#1A1714)' }}
+                  >
+                    <span
+                      className="block group-hover:hidden"
+                      style={{ color: 'var(--ink,#1A1714)' }}
+                    >
+                      <PublishGlyph id={id} />
+                    </span>
+                    <span
+                      className="hidden group-hover:block"
+                      style={{ color: brand }}
+                    >
+                      <PublishGlyph id={id} />
+                    </span>
+                  </span>
+                }
+                tooltip={`复制为「${platform.label}」格式 · Copy as ${platform.labelEn}`}
+                onClick={() => onCopyToPlatform(id)}
+              />
+              <span
+                className="pointer-events-none absolute bottom-1 right-1 h-1 w-1 rounded-full transition-opacity group-hover:opacity-0"
+                style={{ background: brand, opacity: 0.6 }}
+              />
+            </span>
+          );
+        })}
         <IconButton
           icon={<ImageIcon className="h-[18px] w-[18px]" />}
           tooltip="Export PNG"
