@@ -221,12 +221,10 @@ export default function App() {
         }
       />
 
-      <div className="min-h-0 flex-1">
-        <SplitLayout
-          left={<EditorPane value={content} onChange={setContent} />}
-          right={<PreviewPane ref={previewRef} content={content} />}
-        />
-      </div>
+      <SplitLayout
+        left={<EditorPane value={content} onChange={setContent} />}
+        right={<PreviewPane ref={previewRef} content={content} />}
+      />
 
       {/* Hidden file input for Word import */}
       <input

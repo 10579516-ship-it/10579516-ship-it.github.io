@@ -18,7 +18,7 @@ export function SplitLayout({ left, right }: SplitLayoutProps) {
   const [tab, setTab] = useState<'edit' | 'preview'>('edit');
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex flex-1 min-h-0 flex-col">
       {/* Mobile tab bar — hidden on md+ */}
       <div className="flex shrink-0 items-center gap-1 border-b border-[var(--paper-edge,#D9C8A8)] bg-[var(--paper,#F4ECD8)] px-3 py-1.5 md:hidden">
         <button
